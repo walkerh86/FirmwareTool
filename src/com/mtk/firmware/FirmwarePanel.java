@@ -160,6 +160,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 	class ProGressWork extends SwingWorker<List<Work>, Work>
 	{
 		List<Work>	list	= new ArrayList<Work>();
+		boolean mIsSysImgValid = false;
 
 		private void updateProgress(final int value)
 		{
@@ -215,6 +216,21 @@ public class FirmwarePanel extends JPanel implements ActionListener
 
 			MainView.writeLog(MainView.EXT4 + MainView.SYSTEMIMGEXT + sytemdir);
 			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.EXT4 + MainView.SYSTEMIMGEXT + sytemdir));
+/*
+			MainView.writeLog(MainView.UNZIP + MainView.FRAMWORK_RES
+													+"\""+MainView.TY_SYS_IMG_AUTHEN_FILE+"\""
+													+ " -d "+"\""+MainView.TY_TEMP_DIR+"\"");*/
+			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.UNZIP + MainView.FRAMWORK_RES
+													+"\""+MainView.TY_SYS_IMG_AUTHEN_FILE+"\""
+													+ " -d "+"\""+MainView.TY_TEMP_DIR+"\""));
+			File authenFile = new File(MainView.TY_SYS_IMG_AUTHEN_FILE_PATH);
+			File authenFile2 = new File(MainView.TY_SYS_IMG_AUTHEN_FILE2_PATH);
+			if(authenFile.exists() && authenFile2.exists() && InfoPanel.getInstance().authenProp()){
+				mIsSysImgValid = true;
+			}else{
+				MainView.cleanBuff(Runtime.getRuntime().exec(MainView.RM + tmpdir + "-rf"));
+			}
+			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.RM+" \"" + MainView.TY_TEMP_DIR+"\" " + "-rf"));
 
 			for (int i = 90; i <= 100; i++)
 			{
@@ -237,6 +253,10 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		{
 			MainView.writeLog("====================================Readback system.img finish====================================");
 			progressFrame.setVisible(false);
+			if(!mIsSysImgValid){
+				JOptionPane.showMessageDialog(null,"ROM非法");
+				return;
+			}
 			MainView.getInstance().updateTabbedPane(true);
 			InfoPanel.getInstance().preload();
 		}

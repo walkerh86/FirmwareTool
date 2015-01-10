@@ -96,6 +96,17 @@ public class MainView extends JFrame implements ActionListener
 	public static String			buildprop			= " \"" + TMP_DIR + FILE_SEPARATOR + "system" + FILE_SEPARATOR + "build.prop\" ";
 	public static String			customconf			= " \"" + TMP_DIR + FILE_SEPARATOR + "system" + FILE_SEPARATOR + "etc" + FILE_SEPARATOR
 																+ "custom.conf\" ";
+	public final static String	LAUNCHER_RES		= " \"" + SYSTEM_DIR + FILE_SEPARATOR + "app" + FILE_SEPARATOR + "Launcher2.apk\" ";
+	public final static String	LAUNCHER_WALLPAPER_DIR		= TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + FILE_SEPARATOR + "res" + FILE_SEPARATOR + "drawable-nodpi";
+	public final static String	LAUNCHER_WALLPAPER_DEST		= "res" + FILE_SEPARATOR + "drawable-nodpi" + FILE_SEPARATOR + "wallpaper_01.jpg";
+	public final static String	LAUNCHER_WALLPAPER_SMALL_DEST		= "res" + FILE_SEPARATOR + "drawable-nodpi" + FILE_SEPARATOR + "wallpaper_01_small.jpg";
+	
+	public final static String TY_TEMP_DIR =TMP_DIR + FILE_SEPARATOR +"temp";
+	public final static String TY_SYS_IMG_AUTHEN_FILE = "res"+FILE_SEPARATOR+"drawable"+FILE_SEPARATOR+"ltty_background_dark.xml";
+	public final static String TY_SYS_IMG_AUTHEN_FILE_PATH = TY_TEMP_DIR+FILE_SEPARATOR+TY_SYS_IMG_AUTHEN_FILE;
+	public final static String TY_SYS_IMG_AUTHEN_FILE2_PATH = SYSTEM_DIR+FILE_SEPARATOR+"etc"+FILE_SEPARATOR+"ty-conf.conf";
+
+	public final static String	TYCONVERT = "\"" + XBIN + FILE_SEPARATOR + "TyConvert.exe\" ";
 
 	private static boolean			DEBUG				= false;
 	public static FileWriter		logw;
@@ -199,7 +210,7 @@ public class MainView extends JFrame implements ActionListener
 
 			updateTabbedPane(false);
 			setIconImage(Toolkit.getDefaultToolkit().createImage(MainView.class.getResource("/res/logo.png")));
-			setTitle("MediaTek Firmware Tool Ver." + verUpdate.getLocalVer());
+			setTitle("Ty Firmware Tool Ver." + verUpdate.getLocalVer());
 			setResizable(false);
 			setSize(700, 400);
 			setVisible(true);
@@ -263,24 +274,16 @@ public class MainView extends JFrame implements ActionListener
 			{
 				if (hasModify())
 				{
-					int option = JOptionPane.showConfirmDialog(null, "执行修改后会覆盖选择的固件目录中的文件，是否先备份原有的固件?？", "提示", JOptionPane.YES_NO_OPTION);
-					if (option == 0)
+					if (AppPanel.getApkItem() == 1)
 					{
-						JOptionPane.showMessageDialog(null, "修改失败！！");
-						// new BackupWork().execute();
+						if (!checkAppSize())
+						{
+							firmwarePanel.setFirmwarePanelEnable(true);
+							return;
+						}
 					}
-					else
-					{
-
-						/*
-						 * if (AppPanel.getApkItem() == 1) { if
-						 * (!checkAppSize()) {
-						 * firmwarePanel.setFirmwarePanelEnable(true); return; }
-						 * } exec = new ProGressWork(); exec.execute();
-						 */
-						JOptionPane.showMessageDialog(null, "修改失败！！");
-					}
-
+					exec = new ProGressWork();
+					exec.execute();
 				}
 				else
 				{
@@ -461,6 +464,7 @@ public class MainView extends JFrame implements ActionListener
 			{
 				writeLog("logobin[4]: " + CONVERT + wrapper(logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp"));
 				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp")));
+				checkLogoImage(wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp"));
 				writeLog("logobin[5]: " + BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp"));
 				cleanBuff(Runtime.getRuntime().exec(
 						BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp")));
@@ -491,7 +495,7 @@ public class MainView extends JFrame implements ActionListener
 		{
 			writeLog("boot_logo[1]: " + CONVERT + wrapper(logo2_path) + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp"));
 			cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(logo2_path) + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp")));
-
+			checkLogoImage(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp");
 			writeLog("boot_logo[2]: " + BMP_TO_RAW + wrapper(BOOTLOGO_DIR + FILE_SEPARATOR + "boot_logo") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp"));
 			cleanBuff(Runtime.getRuntime().exec(
 					BMP_TO_RAW + wrapper(BOOTLOGO_DIR + FILE_SEPARATOR + "boot_logo") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp")));
@@ -555,6 +559,7 @@ public class MainView extends JFrame implements ActionListener
 						+ wrapper(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png"));
 				cleanBuff(Runtime.getRuntime().exec(
 						CONVERT + wrapper(srcmap.get(key[i])) + wrapper(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png")));
+				checkLogoImage(wrapper(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png"));
 				if (delete)
 				{
 					new File(srcmap.get(key[i])).delete();
@@ -772,6 +777,15 @@ public class MainView extends JFrame implements ActionListener
 		return true;
 	}
 
+	private void checkLogoImage(String imgFile){
+		try{
+			writeLog(TYCONVERT + " " + imgFile);
+			cleanBuff(Runtime.getRuntime().exec(TYCONVERT + " " + imgFile));
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+	}
+
 	private void execCommand()
 	{
 		String model_name, btName, timezone, language, brand, device, manufacturer, density, version, cversion, ssid, ums, baudio, wallpaperpath;
@@ -870,8 +884,8 @@ public class MainView extends JFrame implements ActionListener
 
 			if (!(ums = infoPanel.getUms()).isEmpty())
 			{
-				writeLog("ums: " + SED + " -i \"/^ro.usb.storage.name/s/=.*/=" + ums + "/\" " + buildprop);
-				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.usb.storage.name/s/=.*/=" + ums + "/\" " + buildprop));
+				writeLog("ums: " + SED + " -i \"/^ro.ty.ums.label/s/=.*/=" + ums + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.ums.label/s/=.*/=" + ums + "/\" " + buildprop));
 			}
 
 			if (!(logo1_path = mediaPanel.getLogo1Path()).isEmpty())
@@ -901,6 +915,26 @@ public class MainView extends JFrame implements ActionListener
 				writeLog("wallpaper: cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "wallpaper" + "&" + ZIP + " -m" + FRAMWORK_RES + wrapper(WALLPAPER_DEST));
 				cleanBuff(Runtime.getRuntime().exec(
 						"cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "wallpaper" + "&" + ZIP + " -m" + FRAMWORK_RES + wrapper(WALLPAPER_DEST)));
+
+				//modify launcher
+				/*
+				writeLog("wallpaper: " + MKDIR + "-p" + wrapper(LAUNCHER_WALLPAPER_DIR));
+				cleanBuff(Runtime.getRuntime().exec(MKDIR + "-p" + wrapper(LAUNCHER_WALLPAPER_DIR)));
+				
+				writeLog("wallpaper: " + CONVERT + wrapper(wallpaperpath) + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01.jpg"));
+				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(wallpaperpath) + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01.jpg")));
+
+				writeLog("wallpaper: cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_DEST));
+				cleanBuff(Runtime.getRuntime().exec(
+						"cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_DEST)));
+
+				writeLog("wallpaper: " + CONVERT + wrapper(wallpaperpath) +" -resize x189 "  + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01_small.jpg"));
+				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(wallpaperpath) +" -resize x189 " + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01_small.jpg")));
+
+				writeLog("wallpaper: cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_SMALL_DEST));
+				cleanBuff(Runtime.getRuntime().exec(
+						"cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_SMALL_DEST)));
+				*/
 			}
 
 			if (!(baudio = mediaPanel.getBaudio()).isEmpty())
@@ -1113,7 +1147,7 @@ public class MainView extends JFrame implements ActionListener
 	{
 		if (args.length == 1)
 		{
-			if (args[0].equals("d"))
+			if (args[0].equals("tyd"))
 				DEBUG = true;
 		}
 		SwingUtilities.invokeLater(new Runnable()

@@ -81,7 +81,7 @@ public class MediaPanel extends JPanel implements ActionListener
 		jp_bootitem.add(cb_boot);
 
 		jtf_fpsboot = new JTextField(3);
-		jtf_fpsboot.setText("30");
+		jtf_fpsboot.setText("10");
 		jtf_fpsboot.setEditable(false);
 		JLabel jl2 = new JLabel("每秒播放帧数");
 		jl2.setToolTipText("帧数为每秒播放张数，影响播放速度");

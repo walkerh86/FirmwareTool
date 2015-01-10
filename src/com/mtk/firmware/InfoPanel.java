@@ -128,6 +128,7 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		add(jl8);
 		jtf_density.setBounds(435, 130, 220, 20);
 		add(jtf_density);
+		jtf_density.setEditable(false); //temp not support
 
 		JLabel jl9 = new JLabel("版 本 号");
 		jl9.setToolTipText("影响 设置→关于平板→版本号");
@@ -288,6 +289,9 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 
 	public void setUms(String ums)
 	{
+		if(ums.equals("null")){
+			return;
+		}
 		jtf_ums.setText(ums);
 	}
 
@@ -316,7 +320,7 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		jtf_mtp.setEditable(bool);
 		jtf_maf.setEditable(bool);
 		jtf_brand.setEditable(bool);
-		jtf_density.setEditable(bool);
+		//jtf_density.setEditable(bool); //temp not support
 		jtf_ver.setEditable(bool);
 		jtf_cver.setEditable(bool);
 		jtf_ssid.setEditable(bool);
@@ -414,7 +418,7 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 					}
 				}
 
-				if (read.startsWith("ro.usb.storage.name"))
+				if (read.startsWith("ro.ty.ums.label"))
 				{
 					if (read.split("=").length > 1)
 					{
@@ -422,7 +426,8 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 					}
 				}
 			}
-			if (jtf_ums.getText().equals(""))
+			
+			if (jtf_ums.getText().equals("") && (tmpUMS == null || tmpUMS.length() == 0))
 			{
 				jtf_ums.setEditable(false);
 				hasUms = false;
@@ -458,6 +463,38 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		}
 	}
 
+	public boolean authenProp ()
+	{
+		String read;
+		File f1 = null;
+		BufferedReader br = null;
+		boolean authenOk = false;
+		try
+		{
+			f1 = new File(MainView.unwrapper(MainView.buildprop));
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(f1)));
+			while ((read = br.readLine()) != null)
+			{
+				if (read.startsWith("ro.ty.auth=1"))
+				{
+					authenOk = true;
+					break;
+				}
+			}
+			br.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return authenOk;
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
