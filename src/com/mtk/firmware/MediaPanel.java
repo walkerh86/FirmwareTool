@@ -31,6 +31,11 @@ public class MediaPanel extends JPanel implements ActionListener
 	public static String		lastPath			= "";
 	public static Preferences	pref;
 
+	private JPanel				jp_hide_logo1, jp_hide_logo2;
+	private JTextField			jtf_hide_logo1, jtf_hide_logo2;
+	private JButton			jb_hide_logo1, jb_hide_logo2;
+	
+
 	private MediaPanel()
 	{
 		setLayout(null);
@@ -113,6 +118,30 @@ public class MediaPanel extends JPanel implements ActionListener
 		jp_wallpaper.add(jb_wallpaper);
 		jp_wallpaper.setBounds(0, 185, 600, 30);
 		add(jp_wallpaper);
+		
+		jp_hide_logo1 = new JPanel();
+		jtf_hide_logo1 = new JTextField(60);
+		jb_hide_logo1 = new JButton("浏览..");
+		jb_hide_logo1.addActionListener(this);
+		jp_hide_logo1.setToolTipText("选择第一屏图片,只能选择图片,不论格式,请选择对应分辨率的图片");
+		jtf_hide_logo1.setToolTipText("选择第一屏图片,只能选择图片,不论格式,请选择对应分辨率的图片");
+		jp_hide_logo1.add(new JLabel("隐藏开机第一屏图片"));
+		jp_hide_logo1.add(jtf_hide_logo1);
+		jp_hide_logo1.add(jb_hide_logo1);
+		jp_hide_logo1.setBounds(0, 235, 600, 30);
+		add(jp_hide_logo1);
+		
+		jp_hide_logo2 = new JPanel();
+		jtf_hide_logo2 = new JTextField(60);
+		jb_hide_logo2 = new JButton("浏览..");
+		jb_hide_logo2.addActionListener(this);
+		jp_hide_logo2.setToolTipText("选择第一屏图片,只能选择图片,不论格式,请选择对应分辨率的图片");
+		jtf_hide_logo2.setToolTipText("选择第一屏图片,只能选择图片,不论格式,请选择对应分辨率的图片");
+		jp_hide_logo2.add(new JLabel("隐藏开机第二屏图片"));
+		jp_hide_logo2.add(jtf_hide_logo2);
+		jp_hide_logo2.add(jb_hide_logo2);
+		jp_hide_logo2.setBounds(0, 285, 600, 30);
+		add(jp_hide_logo2);
 	}
 
 	public synchronized static MediaPanel getInstance()
@@ -134,6 +163,15 @@ public class MediaPanel extends JPanel implements ActionListener
 		return jtf_logo2.getText().toString().trim();
 	}
 
+	public String getHideLogo1Path()
+	{
+		return jtf_hide_logo1.getText().toString().trim();
+	}
+
+	public String getHideLogo2Path()
+	{
+		return jtf_hide_logo2.getText().toString().trim();
+	}
 	public String getWallpaperPath()
 	{
 		return jtf_wallpaper.getText().toString().trim();
@@ -209,12 +247,16 @@ public class MediaPanel extends JPanel implements ActionListener
 		jb_banimation.setEnabled(bool);
 		jb_baudio.setEnabled(bool);
 		jb_wallpaper.setEnabled(bool);
+
+		jb_hide_logo1.setEnabled(bool);
+		jb_hide_logo2.setEnabled(bool);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent event)
 	{
-		if ((event.getSource() == jb_logo1) || (event.getSource() == jb_logo2) || (event.getSource() == jb_wallpaper))
+		if ((event.getSource() == jb_logo1) || (event.getSource() == jb_logo2) || (event.getSource() == jb_wallpaper)
+			|| (event.getSource() == jb_hide_logo1) || (event.getSource() == jb_hide_logo2))
 		{
 			lastPath = pref.get("lastPath", "");
 			if (!lastPath.equals(""))
@@ -239,6 +281,12 @@ public class MediaPanel extends JPanel implements ActionListener
 					jtf_logo2.setText(file.getAbsolutePath());
 				if (event.getSource() == jb_wallpaper)
 					jtf_wallpaper.setText(file.getAbsolutePath());
+				
+				if (event.getSource() == jb_hide_logo1)
+					jtf_hide_logo1.setText(file.getAbsolutePath());
+				if (event.getSource() == jb_hide_logo2)
+					jtf_hide_logo2.setText(file.getAbsolutePath());
+				
 				pref.put("lastPath", file.getPath());
 			}
 		}

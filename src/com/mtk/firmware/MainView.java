@@ -108,6 +108,8 @@ public class MainView extends JFrame implements ActionListener
 
 	public final static String	TYCONVERT = "\"" + XBIN + FILE_SEPARATOR + "TyConvert.exe\" ";
 
+	public final static String	DATA_APP_DIR = USERDATA_DIR + FILE_SEPARATOR + "app";
+
 	private static boolean			DEBUG				= false;
 	public static FileWriter		logw;
 	public static Date				date;
@@ -116,6 +118,8 @@ public class MainView extends JFrame implements ActionListener
 	private boolean					cpUserdata			= false;
 	private String					logo1_path, logo2_path;
 	private String					bootanimationPath;
+
+	private String					hide_logo1_path, hide_logo2_path;
 
 	private VerUpdate				verUpdate;
 	private static FirmwarePanel	firmwarePanel;
@@ -212,7 +216,7 @@ public class MainView extends JFrame implements ActionListener
 			setIconImage(Toolkit.getDefaultToolkit().createImage(MainView.class.getResource("/res/logo.png")));
 			setTitle("Ty Firmware Tool Ver." + verUpdate.getLocalVer());
 			setResizable(false);
-			setSize(700, 400);
+			setSize(700, 560);
 			setVisible(true);
 			setDefaultCloseOperation(EXIT_ON_CLOSE);
 			setLocationRelativeTo(null);
@@ -415,8 +419,9 @@ public class MainView extends JFrame implements ActionListener
 
 	private void preEnv()
 	{
-
+		hide_logo2_path = mediaPanel.getHideLogo2Path();
 		if (!(logo2_path = mediaPanel.getLogo2Path()).equals("")
+			|| !hide_logo2_path.equals("")
 				|| infoPanel.hasModify()
 				|| !mediaPanel.getBootanimationPath().equals("")
 				|| (appPanel.getApkList().length > 0 && (AppPanel.getApkItem() == 1 || AppPanel.getApkItem() == 0) || !mediaPanel.getBaudio().equals("") || !mediaPanel
@@ -469,6 +474,22 @@ public class MainView extends JFrame implements ActionListener
 				cleanBuff(Runtime.getRuntime().exec(
 						BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp")));
 			}
+			else if (index == 39)
+			{
+				writeLog("logobin[4]: " + CONVERT + wrapper(hide_logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp"));
+				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(hide_logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp")));
+				checkLogoImage(wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp"));
+				writeLog("logobin[5]: " + BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp"));
+				cleanBuff(Runtime.getRuntime().exec(
+						BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp")));
+			}
+			else if (index == 40)
+			{
+				writeLog("boot_logo[2]: " + BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw")
+						+ wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp"));
+				cleanBuff(Runtime.getRuntime().exec(
+						BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp")));
+			}
 			else
 			{
 				writeLog("boot_logo[2]: " + BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw")
@@ -499,6 +520,24 @@ public class MainView extends JFrame implements ActionListener
 			writeLog("boot_logo[2]: " + BMP_TO_RAW + wrapper(BOOTLOGO_DIR + FILE_SEPARATOR + "boot_logo") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp"));
 			cleanBuff(Runtime.getRuntime().exec(
 					BMP_TO_RAW + wrapper(BOOTLOGO_DIR + FILE_SEPARATOR + "boot_logo") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo.bmp")));
+
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void makeBootLogo2()
+	{
+		try
+		{
+			writeLog("boot_logo[1]: " + CONVERT + wrapper(hide_logo2_path) + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp"));
+			cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(hide_logo2_path) + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp")));
+			checkLogoImage(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp");
+			writeLog("boot_logo[2]: " + BMP_TO_RAW + wrapper(BOOTLOGO_DIR + FILE_SEPARATOR + "boot_logo2") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp"));
+			cleanBuff(Runtime.getRuntime().exec(
+					BMP_TO_RAW + wrapper(BOOTLOGO_DIR + FILE_SEPARATOR + "boot_logo2") + wrapper(TMP_DIR + FILE_SEPARATOR + "boot_logo2.bmp")));
 
 		}
 		catch (IOException e)
@@ -888,6 +927,50 @@ public class MainView extends JFrame implements ActionListener
 				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.ums.label/s/=.*/=" + ums + "/\" " + buildprop));
 			}
 
+			String fakeSizeIn,fakeSizeSd,fakeSizeRam,brightness,homepage;
+			if (!(fakeSizeIn = infoPanel.getFakeSizeIn()).isEmpty())
+			{
+				writeLog("ums: " + SED + " -i \"/^ro.ty.storage.fakein/s/=.*/=" + fakeSizeIn + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.storage.fakein/s/=.*/=" + fakeSizeIn + "/\" " + buildprop));
+			}
+			if (!(fakeSizeSd = infoPanel.getFakeSizeSd()).isEmpty())
+			{
+				writeLog("ums: " + SED + " -i \"/^ro.ty.storage.fakesd/s/=.*/=" + fakeSizeSd + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.storage.fakesd/s/=.*/=" + fakeSizeSd + "/\" " + buildprop));
+			}
+			if (!(fakeSizeRam = infoPanel.getFakeSizeRam()).isEmpty())
+			{
+				writeLog("ums: " + SED + " -i \"/^ro.ty.storage.fakeram/s/=.*/=" + fakeSizeRam + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.storage.fakeram/s/=.*/=" + fakeSizeRam + "/\" " + buildprop));
+			}
+
+			if (!(brightness = infoPanel.getBrightness()).isEmpty())
+			{
+				//int intBrightness = (int)(Integer.valueOf(brightness)*255F/100);
+				String value = brightness;//String.valueOf(intBrightness);
+				writeLog("ums: " + SED + " -i \"/^ro.ty.setting.brightness/s/=.*/=" + value + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.setting.brightness/s/=.*/=" + value + "/\" " + buildprop));
+			}
+
+			if (infoPanel.getBrowserHomePageSupport() && !(homepage = infoPanel.getBrowserHomePage()).isEmpty())
+			{
+				String convertUrl = homepage.replaceAll("//","\\\\/\\\\/");
+				writeLog("ums: " + SED + " -i \"/^ro.ty.browser.homepage/s/=.*/=" + convertUrl + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.browser.homepage/s/=.*/=" + convertUrl + "/\" " + buildprop));
+			}
+
+			if(infoPanel.getDrawerBgTransSupport()){
+				String value = infoPanel.getDrawerBgTrans() ? "1" : "0";
+				writeLog("ums: " + SED + " -i \"/^ro.ty.launcher.bgtrans/s/=.*/=" + value + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.launcher.bgtrans/s/=.*/=" + value + "/\" " + buildprop));
+			}
+
+			if(infoPanel.getLangBySimSupport()){
+				String value = infoPanel.getLangBySim() ? "1" : "0";
+				writeLog("ums: " + SED + " -i \"/^ro.ty.lang.bysim/s/=.*/=" + value + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.lang.bysim/s/=.*/=" + value + "/\" " + buildprop));
+			}
+
 			if (!(logo1_path = mediaPanel.getLogo1Path()).isEmpty())
 			{
 				makeLogoBin(0);
@@ -897,6 +980,17 @@ public class MainView extends JFrame implements ActionListener
 			{
 				makeBootLogo();
 				makeLogoBin(38);
+			}
+
+			if (!((hide_logo1_path = mediaPanel.getHideLogo1Path()).isEmpty()))
+			{
+				makeLogoBin(39);
+			}
+
+			if (!(hide_logo2_path.isEmpty()))
+			{
+				makeBootLogo2();
+				makeLogoBin(40);
 			}
 
 			if (!(bootanimationPath = mediaPanel.getBootanimationPath()).isEmpty())
@@ -973,6 +1067,12 @@ public class MainView extends JFrame implements ActionListener
 					}
 					else if (AppPanel.getApkItem() == 2)
 					{
+						File dest = new File(DATA_APP_DIR);
+						if (!dest.exists())
+						{
+							writeLog(MKDIR + " -p" + wrapper(DATA_APP_DIR));
+							cleanBuff(Runtime.getRuntime().exec(MKDIR + " -p" + wrapper(DATA_APP_DIR)));
+						}
 						writeLog("apk[1]: /data/app/" + f[i].getName() + ".apk");
 						cleanBuff(Runtime.getRuntime().exec(
 								COPY + wrapper(f[i].getAbsolutePath())
