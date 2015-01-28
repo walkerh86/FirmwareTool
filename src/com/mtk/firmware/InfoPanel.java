@@ -41,12 +41,12 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 	private String				tmpModel, tmpTz, tmpLan, tmpBT, tmpBrand, tmpMTP, tmpMaf, tmpDen, tmpVer, tmpCver, tmpSSID, tmpUMS;
 	private boolean				hasUms				= true;
 
-	private MyTextField jtf_fake_in, jtf_fake_sd, jtf_fake_ram, jtf_brightness, jtf_homepage;
-	private String	tmpFakeSizeIn, tmpFakeSizeSd, tmpFakeSizeRam, tmpHomepage;
+	private MyTextField jtf_fake_in, jtf_fake_sd, jtf_fake_ram, jtf_brightness, jtf_homepage, jtf_def_ime, jtf_def_wallpaper;
+	private String	tmpFakeSizeIn, tmpFakeSizeSd, tmpFakeSizeRam, tmpHomepage, tmpDefIme, tmpDefWallpaper;
 
 	private JCheckBox jcb_drawer_bgtrans, jcb_lang_sim;
 	private boolean tmpDrawerBgTrans, tmpLangBySim;
-	private boolean mDrawerBgTransSupport, mLangBySimSupport, mHomePageSupport;
+	private boolean mDrawerBgTransSupport, mLangBySimSupport, mHomePageSupport, mDefImeSupport, mDefWallpaerSupport;
 
 	private int tmpBrightness;
 
@@ -177,25 +177,25 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		jtf_fake_sd = new MyTextField(0, "jtf_fake_sd");
 		jtf_fake_ram = new MyTextField(0, "jtf_fake_ram");
 		JLabel jl13 = new JLabel("假容量");
-		jl13.setBounds(10, 250, 60, 20);
+		jl13.setBounds(10, 330, 60, 20);
 		add(jl13);
 		
 		JLabel jl14 = new JLabel("内部存储(Gb)");
-		jl14.setBounds(65, 250, 135, 20);
+		jl14.setBounds(65, 330, 135, 20);
 		add(jl14);
-		jtf_fake_in.setBounds(140, 250, 125, 20);
+		jtf_fake_in.setBounds(140, 330, 125, 20);
 		add(jtf_fake_in);
 		
 		JLabel jl15 = new JLabel("手机存储(Gb)");
-		jl15.setBounds(65, 290, 135, 20);
+		jl15.setBounds(65, 370, 135, 20);
 		add(jl15);
-		jtf_fake_sd.setBounds(140, 290, 125, 20);
+		jtf_fake_sd.setBounds(140, 370, 125, 20);
 		add(jtf_fake_sd);
 		
-		JLabel jl16 = new JLabel("DDR(Gb)");
-		jl16.setBounds(65, 330, 135, 20);
+		JLabel jl16 = new JLabel("正在运行(Gb)");
+		jl16.setBounds(65, 410, 135, 20);
 		add(jl16);
-		jtf_fake_ram.setBounds(140, 330, 125, 20);
+		jtf_fake_ram.setBounds(140, 410, 125, 20);
 		add(jtf_fake_ram);
 		
 		jtf_brightness = new MyTextField(0, "jftf_brightness");
@@ -219,6 +219,20 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		jcb_lang_sim =  new JCheckBox("语言随SIM自动变化",false);
 		jcb_lang_sim.setBounds(380, 370, 160, 20);
 		add(jcb_lang_sim);
+
+		JLabel jl19 = new JLabel("默认输入法");
+		jl19.setBounds(10, 250, 80, 20);
+		add(jl19);
+		jtf_def_ime = new MyTextField(0, "jtf_def_ime");
+		jtf_def_ime.setBounds(85, 250, 220, 20);
+		add(jtf_def_ime);
+		
+		JLabel jl20 = new JLabel("默认APK壁纸");
+		jl20.setBounds(10, 290, 80, 20);
+		add(jl20);
+		jtf_def_wallpaper = new MyTextField(0, "jtf_def_wallpaper");
+		jtf_def_wallpaper.setBounds(85, 290, 220, 20);
+		add(jtf_def_wallpaper);
 	}
 
 	public synchronized static InfoPanel getInstance()
@@ -438,6 +452,36 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		jcb_lang_sim.setSelected(trans);
 		jcb_lang_sim.setEnabled(true);
 	}
+
+	public boolean getDefImeSupport(){
+		return mDefImeSupport;
+	}
+
+	public String getDefIme()
+	{
+		return jtf_def_ime.getText().toString().trim().replace(" ", "\\ ");
+	}
+
+	public void setDefIme(String ss)
+	{
+		jtf_def_ime.setText(ss);
+		jtf_def_ime.setEnabled(true);
+	}
+
+	public boolean getDefWallpaperSupport(){
+		return mDefWallpaerSupport;
+	}
+
+	public String getDefWallpaper()
+	{
+		return jtf_def_wallpaper.getText().toString().trim().replace(" ", "\\ ");
+	}
+
+	public void setDefWallpaper(String ss)
+	{
+		jtf_def_wallpaper.setText(ss);
+		jtf_def_wallpaper.setEnabled(true);
+	}
 	
 	public boolean hasModify()
 	{
@@ -454,6 +498,7 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 				&& getVer().equals(tmpVer) && getCver().equals(tmpCver) && getSsid().equals(tmpSSID) && getBtname().equals(tmpBT.replace(" ", "\\ ")) && ums
 				&& getFakeSizeIn().equals(tmpFakeSizeIn) && getFakeSizeSd().equals(tmpFakeSizeSd) && getFakeSizeRam().equals(tmpFakeSizeRam)
 				&& getBrightness().equals(tmpBrightness) && getBrowserHomePage().equals(tmpHomepage)
+				&& getDefIme().equals(tmpDefIme) && getDefWallpaper().equals(tmpDefWallpaper)
 				&& (getDrawerBgTrans() ^ tmpDrawerBgTrans) && (getLangBySim() ^ tmpLangBySim));
 	}
 
@@ -482,6 +527,8 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 		jcb_drawer_bgtrans.setEnabled(mDrawerBgTransSupport ? bool : false);
 		jcb_lang_sim.setEnabled(mLangBySimSupport ? bool : false);
 		jtf_homepage.setEnabled(mHomePageSupport ? bool : false);
+		jtf_def_ime.setEnabled(mDefImeSupport ? bool : false);
+		jtf_def_wallpaper.setEnabled(mDefWallpaerSupport ? bool : false);
 	}
 
 	public void preload()
@@ -622,7 +669,6 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 					{
 						setDrawerBgTrans(tmpDrawerBgTrans = (read.split("=")[1].equals("1")));
 						mDrawerBgTransSupport = true;
-						System.out.print("preload mDrawerBgTransSupport="+mDrawerBgTransSupport);
 					}
 				}
 				if (read.startsWith("ro.ty.lang.bysim"))
@@ -631,6 +677,24 @@ public class InfoPanel extends JPanel implements ActionListener, KeyListener
 					{
 						setLangBySim(tmpLangBySim = (read.split("=")[1].equals("1")));
 						mLangBySimSupport = true;
+					}
+				}
+
+				if (read.startsWith("ro.ty.default.ime"))
+				{
+					if (read.split("=").length > 1)
+					{
+						setDefIme(tmpDefIme= (read.split("=")[1]));
+						mDefImeSupport = true;
+					}
+				}
+
+				if (read.startsWith("ro.ty.default.wallpaper"))
+				{
+					if (read.split("=").length > 1)
+					{
+						setDefWallpaper(tmpDefWallpaper= (read.split("=")[1]));
+						mDefWallpaerSupport = true;
 					}
 				}
 			}

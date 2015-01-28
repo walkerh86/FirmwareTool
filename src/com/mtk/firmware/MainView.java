@@ -42,6 +42,8 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.mtk.firmware.util.BinUtil;
+import com.mtk.firmware.util.ComUtil;
 import com.mtk.firmware.util.FileUtil;
 import com.mtk.firmware.util.VerUpdate;
 
@@ -96,17 +98,13 @@ public class MainView extends JFrame implements ActionListener
 	public static String			buildprop			= " \"" + TMP_DIR + FILE_SEPARATOR + "system" + FILE_SEPARATOR + "build.prop\" ";
 	public static String			customconf			= " \"" + TMP_DIR + FILE_SEPARATOR + "system" + FILE_SEPARATOR + "etc" + FILE_SEPARATOR
 																+ "custom.conf\" ";
-	public final static String	LAUNCHER_RES		= " \"" + SYSTEM_DIR + FILE_SEPARATOR + "app" + FILE_SEPARATOR + "Launcher2.apk\" ";
-	public final static String	LAUNCHER_WALLPAPER_DIR		= TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + FILE_SEPARATOR + "res" + FILE_SEPARATOR + "drawable-nodpi";
-	public final static String	LAUNCHER_WALLPAPER_DEST		= "res" + FILE_SEPARATOR + "drawable-nodpi" + FILE_SEPARATOR + "wallpaper_01.jpg";
-	public final static String	LAUNCHER_WALLPAPER_SMALL_DEST		= "res" + FILE_SEPARATOR + "drawable-nodpi" + FILE_SEPARATOR + "wallpaper_01_small.jpg";
-	
 	public final static String TY_TEMP_DIR =TMP_DIR + FILE_SEPARATOR +"temp";
 	public final static String TY_SYS_IMG_AUTHEN_FILE = "res"+FILE_SEPARATOR+"drawable"+FILE_SEPARATOR+"ltty_background_dark.xml";
 	public final static String TY_SYS_IMG_AUTHEN_FILE_PATH = TY_TEMP_DIR+FILE_SEPARATOR+TY_SYS_IMG_AUTHEN_FILE;
 	public final static String TY_SYS_IMG_AUTHEN_FILE2_PATH = SYSTEM_DIR+FILE_SEPARATOR+"etc"+FILE_SEPARATOR+"ty-conf.conf";
 
-	public final static String	TYCONVERT = "\"" + XBIN + FILE_SEPARATOR + "TyConvert.exe\" ";
+	private static final String TMP_DIR_WALLPAPER_FRAMEWORK = ComUtil.pathConcat(TMP_DIR,"wallpaper-framework");
+	private static final String TMP_DIR_WALLPAPER_LAUNCHER = ComUtil.pathConcat(TMP_DIR,"wallpaper-launcher");
 
 	public final static String	DATA_APP_DIR = USERDATA_DIR + FILE_SEPARATOR + "app";
 
@@ -221,7 +219,6 @@ public class MainView extends JFrame implements ActionListener
 			setDefaultCloseOperation(EXIT_ON_CLOSE);
 			setLocationRelativeTo(null);
 			writeLog("UI init succeed!");
-			// firmwarePanel.setFirmwarePath("C:\\Users\\ShiYouHui\\Desktop\\Test\\MT6572");
 
 		}
 		catch (IOException e)
@@ -469,7 +466,7 @@ public class MainView extends JFrame implements ActionListener
 			{
 				writeLog("logobin[4]: " + CONVERT + wrapper(logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp"));
 				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp")));
-				checkLogoImage(wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp"));
+				checkLogoImage(LOGO_DIR + FILE_SEPARATOR + "logo.bmp");
 				writeLog("logobin[5]: " + BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp"));
 				cleanBuff(Runtime.getRuntime().exec(
 						BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "logo.bmp")));
@@ -478,7 +475,7 @@ public class MainView extends JFrame implements ActionListener
 			{
 				writeLog("logobin[4]: " + CONVERT + wrapper(hide_logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp"));
 				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(hide_logo1_path) + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp")));
-				checkLogoImage(wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp"));
+				checkLogoImage(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp");
 				writeLog("logobin[5]: " + BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp"));
 				cleanBuff(Runtime.getRuntime().exec(
 						BMP_TO_RAW + wrapper(LOGO_DIR + FILE_SEPARATOR + index + ".raw") + wrapper(LOGO_DIR + FILE_SEPARATOR + "hide_logo1.bmp")));
@@ -598,7 +595,7 @@ public class MainView extends JFrame implements ActionListener
 						+ wrapper(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png"));
 				cleanBuff(Runtime.getRuntime().exec(
 						CONVERT + wrapper(srcmap.get(key[i])) + wrapper(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png")));
-				checkLogoImage(wrapper(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png"));
+				checkLogoImage(TMP_DIR + FILE_SEPARATOR + destString + FILE_SEPARATOR + dig.format(i + 1) + ".png");
 				if (delete)
 				{
 					new File(srcmap.get(key[i])).delete();
@@ -817,12 +814,68 @@ public class MainView extends JFrame implements ActionListener
 	}
 
 	private void checkLogoImage(String imgFile){
-		try{
-			writeLog(TYCONVERT + " " + imgFile);
-			cleanBuff(Runtime.getRuntime().exec(TYCONVERT + " " + imgFile));
-		}catch (Exception e){
-			e.printStackTrace();
+		BinUtil.Size size = BinUtil.IdentifyImageSize(imgFile);
+		System.out.print(size.toString());
+		if(size.width != -1 && size.height != -1 && size.width < size.height){
+			BinUtil.rotateImage(-90,imgFile);
 		}
+	}
+
+	private void updateApkWallpaper(String srcWallpaperPath, String tmpDir, String apkPath, 
+		String updateDir, String updateFile){
+		String tmpUpdateDir = ComUtil.pathConcat(tmpDir,updateDir);
+		BinUtil.makeDir(tmpUpdateDir);
+		BinUtil.copyFile(srcWallpaperPath, ComUtil.pathConcat(tmpUpdateDir,updateFile));
+		BinUtil.zipUpdateApk(tmpDir, apkPath, ComUtil.pathConcat(updateDir,updateFile));
+	}
+
+	private void updateFrameworkWallpaper(String wallpaperpath){
+		updateApkWallpaper(wallpaperpath,TMP_DIR_WALLPAPER_FRAMEWORK,FRAMWORK_RES,
+			ComUtil.pathConcat("res","drawable-nodpi"),"default_wallpaper.jpg");
+		updateApkWallpaper(wallpaperpath,TMP_DIR_WALLPAPER_FRAMEWORK,FRAMWORK_RES,
+			ComUtil.pathConcat("res","drawable-sw600dp-nodpi"),"default_wallpaper.jpg");
+	}
+
+	private void updateLauncherWallpaper(String wallpaperpath,String updateFile){
+		//find Launcher2.apk
+		String launcherPath = null;
+		String[] launcherPaths = new String[]{
+			ComUtil.pathConcat(SYSTEM_DIR,"app","Launcher2.apk"),
+			ComUtil.pathConcat(SYSTEM_DIR,"priv-app","Launcher2.apk")
+		};
+		for(String path : launcherPaths){
+			File launcherApk = new File(path);
+			if(launcherApk.exists()){
+				launcherPath = path;
+				break;
+			}
+		}
+
+		if(launcherPath == null){
+			return;
+		}
+
+		updateApkWallpaper(wallpaperpath,TMP_DIR_WALLPAPER_LAUNCHER,launcherPath,
+			ComUtil.pathConcat("res","drawable-sw400dp-nodpi"),updateFile);
+		updateApkWallpaper(wallpaperpath,TMP_DIR_WALLPAPER_LAUNCHER,launcherPath,
+			ComUtil.pathConcat("res","drawable-sw480dp-nodpi"),updateFile);
+/*
+		updateApkWallpaper(wallpaperpath,TMP_DIR_WALLPAPER_LAUNCHER,launcherPath,
+			ComUtil.pathConcat("res","drawable-nodpi"),updateFile);
+*/
+		updateApkWallpaper(wallpaperpath,TMP_DIR_WALLPAPER_LAUNCHER,launcherPath,
+			ComUtil.pathConcat("res","drawable-sw600dp-nodpi"),updateFile);
+	}
+
+	private void updateWallpaper(String wallpaperpath){
+		String tmpWallpaperPath = ComUtil.pathConcat(TMP_DIR,"wallpaper.jpg");
+		BinUtil.convertImage(wallpaperpath, tmpWallpaperPath);
+		updateFrameworkWallpaper(tmpWallpaperPath);
+		updateLauncherWallpaper(tmpWallpaperPath,"wallpaper_01.jpg");
+		String tmpWallpaperSmallPath = ComUtil.pathConcat(TMP_DIR,"wallpaper_small.jpg");
+		BinUtil.copyFile(tmpWallpaperPath, tmpWallpaperSmallPath);
+		BinUtil.resizeImage(tmpWallpaperSmallPath, "x189");
+		updateLauncherWallpaper(tmpWallpaperSmallPath,"wallpaper_01_small.jpg");
 	}
 
 	private void execCommand()
@@ -927,7 +980,7 @@ public class MainView extends JFrame implements ActionListener
 				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.ums.label/s/=.*/=" + ums + "/\" " + buildprop));
 			}
 
-			String fakeSizeIn,fakeSizeSd,fakeSizeRam,brightness,homepage;
+			String fakeSizeIn,fakeSizeSd,fakeSizeRam,brightness,homepage,defIme,defWallpaper;
 			if (!(fakeSizeIn = infoPanel.getFakeSizeIn()).isEmpty())
 			{
 				writeLog("ums: " + SED + " -i \"/^ro.ty.storage.fakein/s/=.*/=" + fakeSizeIn + "/\" " + buildprop);
@@ -946,8 +999,7 @@ public class MainView extends JFrame implements ActionListener
 
 			if (!(brightness = infoPanel.getBrightness()).isEmpty())
 			{
-				//int intBrightness = (int)(Integer.valueOf(brightness)*255F/100);
-				String value = brightness;//String.valueOf(intBrightness);
+				String value = brightness;
 				writeLog("ums: " + SED + " -i \"/^ro.ty.setting.brightness/s/=.*/=" + value + "/\" " + buildprop);
 				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.setting.brightness/s/=.*/=" + value + "/\" " + buildprop));
 			}
@@ -969,6 +1021,20 @@ public class MainView extends JFrame implements ActionListener
 				String value = infoPanel.getLangBySim() ? "1" : "0";
 				writeLog("ums: " + SED + " -i \"/^ro.ty.lang.bysim/s/=.*/=" + value + "/\" " + buildprop);
 				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.lang.bysim/s/=.*/=" + value + "/\" " + buildprop));
+			}
+
+			if (infoPanel.getDefImeSupport() && !(defIme = infoPanel.getDefIme()).isEmpty())
+			{
+				String convertValue = defIme.replaceAll("/","\\\\/");
+				writeLog("ums: " + SED + " -i \"/^ro.ty.default.ime/s/=.*/=" + convertValue + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.default.ime/s/=.*/=" + convertValue + "/\" " + buildprop));
+			}
+
+			if (infoPanel.getDefWallpaperSupport() && !(defWallpaper = infoPanel.getDefWallpaper()).isEmpty())
+			{
+				String convertValue = defWallpaper.replaceAll("/","\\\\/");
+				writeLog("ums: " + SED + " -i \"/^ro.ty.default.wallpaper/s/=.*/=" + convertValue + "/\" " + buildprop);
+				cleanBuff(Runtime.getRuntime().exec(SED + " -i \"/^ro.ty.default.wallpaper/s/=.*/=" + convertValue + "/\" " + buildprop));
 			}
 
 			if (!(logo1_path = mediaPanel.getLogo1Path()).isEmpty())
@@ -998,37 +1064,8 @@ public class MainView extends JFrame implements ActionListener
 				makeAnimation(0);
 			}
 
-			if (!(wallpaperpath = mediaPanel.getWallpaperPath()).isEmpty())
-			{
-				writeLog("wallpaper: " + MKDIR + "-p" + wrapper(WALLPAPER_DIR));
-				cleanBuff(Runtime.getRuntime().exec(MKDIR + "-p" + wrapper(WALLPAPER_DIR)));
-
-				writeLog("wallpaper: " + CONVERT + wrapper(wallpaperpath) + wrapper(WALLPAPER_DIR + FILE_SEPARATOR + "default_wallpaper.jpg"));
-				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(wallpaperpath) + wrapper(WALLPAPER_DIR + FILE_SEPARATOR + "default_wallpaper.jpg")));
-
-				writeLog("wallpaper: cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "wallpaper" + "&" + ZIP + " -m" + FRAMWORK_RES + wrapper(WALLPAPER_DEST));
-				cleanBuff(Runtime.getRuntime().exec(
-						"cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "wallpaper" + "&" + ZIP + " -m" + FRAMWORK_RES + wrapper(WALLPAPER_DEST)));
-
-				//modify launcher
-				/*
-				writeLog("wallpaper: " + MKDIR + "-p" + wrapper(LAUNCHER_WALLPAPER_DIR));
-				cleanBuff(Runtime.getRuntime().exec(MKDIR + "-p" + wrapper(LAUNCHER_WALLPAPER_DIR)));
-				
-				writeLog("wallpaper: " + CONVERT + wrapper(wallpaperpath) + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01.jpg"));
-				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(wallpaperpath) + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01.jpg")));
-
-				writeLog("wallpaper: cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_DEST));
-				cleanBuff(Runtime.getRuntime().exec(
-						"cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_DEST)));
-
-				writeLog("wallpaper: " + CONVERT + wrapper(wallpaperpath) +" -resize x189 "  + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01_small.jpg"));
-				cleanBuff(Runtime.getRuntime().exec(CONVERT + wrapper(wallpaperpath) +" -resize x189 " + wrapper(LAUNCHER_WALLPAPER_DIR + FILE_SEPARATOR + "wallpaper_01_small.jpg")));
-
-				writeLog("wallpaper: cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_SMALL_DEST));
-				cleanBuff(Runtime.getRuntime().exec(
-						"cmd /c cd /d " + TMP_DIR + FILE_SEPARATOR + "launcher_wallpaper" + "&" + ZIP + " -m" + LAUNCHER_RES + wrapper(LAUNCHER_WALLPAPER_SMALL_DEST)));
-				*/
+			if (!(wallpaperpath = mediaPanel.getWallpaperPath()).isEmpty()){			
+				updateWallpaper(wallpaperpath);
 			}
 
 			if (!(baudio = mediaPanel.getBaudio()).isEmpty())

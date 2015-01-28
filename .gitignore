@@ -9,3 +9,5 @@
 /jre
 /out
 /firmware
+/git*.txt
+/*.log

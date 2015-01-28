@@ -250,6 +250,8 @@ public class MediaPanel extends JPanel implements ActionListener
 
 		jb_hide_logo1.setEnabled(bool);
 		jb_hide_logo2.setEnabled(bool);
+		jtf_hide_logo1.setEnabled(bool);
+		jtf_hide_logo2.setEnabled(bool);
 	}
 
 	@Override
