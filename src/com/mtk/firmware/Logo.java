@@ -130,7 +130,7 @@ public class Logo
 			for (int i = 0; i < fileCount; i++)
 			{
 				addrs[i] = Integer.parseInt(toHex(toLH(in.readInt())).split("0x")[1], 16);
-				Log.i("addr[" + i + "]" + toHex(toLH(addrs[i])));
+				//Log.i("addr[" + i + "]" + toHex(toLH(addrs[i])));
 			}
 			for (int i = 0; i < fileCount; i++)
 			{
@@ -145,7 +145,7 @@ public class Logo
 					size = addrs[i + 1] - addrs[i];
 				}
 
-				Log.i("size[" + i + "]" + size);
+				//Log.i("size[" + i + "]" + size);
 				byte[] temfile = new byte[size];
 				in.read(temfile, 0, size);
 
@@ -183,7 +183,7 @@ public class Logo
 			{
 				File f = new File(ComUtil.pathConcat(dstPath, i + ".raw"));
 				byte[] end = ZLib.Deflate(getBytes(f.getAbsolutePath()));
-				Log.i("File[" + i + "]" + toHex(toLH(addrs[i])));
+				//Log.i("File[" + i + "]" + toHex(toLH(addrs[i])));
 				if (i < fileCount - 1)
 				{
 					addrs[i + 1] = addrs[i] + end.length;

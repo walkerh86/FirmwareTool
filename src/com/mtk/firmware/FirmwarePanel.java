@@ -238,25 +238,16 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		protected List<Work> doInBackground() throws Exception
 		{
 			Log.i("====================================Begin readback system.img====================================");
-			String tmpdir = ComUtil.OUT_DIR;
-			String sytemdir = ComUtil.SYSTEM_DIR;
 			MainView.getInstance().updateTabbedPane(false);
 			current.setValue(0);
 			updateProgress(90);
 			
-			if (new File(tmpdir).exists()){			
-				BinUtil.rm(tmpdir);
-			}
-			BinUtil.mkdir(tmpdir);
-			BinUtil.simgToImg(mSysImgPath, SYSTEM_IMGEXT);
-			BinUtil.mkdir(sytemdir);
-			BinUtil.ext4(SYSTEM_IMGEXT,sytemdir);
-			mSysImgSizeMb = (int)FileUtil.getFileSizes(SYSTEM_IMGEXT) / 1024 / 1024;
-			BinUtil.rm(SYSTEM_IMGEXT);
+			ComUtil.mkTempDir(ComUtil.OUT_DIR);
+			unpackSystem();
 
-			mRomValid = romCheck(sytemdir);
+			mRomValid = romCheck(ComUtil.SYSTEM_DIR);
 			if(!mRomValid){
-				BinUtil.rm(sytemdir);
+				BinUtil.rm(ComUtil.SYSTEM_DIR);
 			}
 			
 			for (int i = 90; i <= 100; i++){			
@@ -285,6 +276,8 @@ public class FirmwarePanel extends JPanel implements ActionListener
 			}
 			MainView.getInstance().updateTabbedPane(true);
 			InfoPanel.getInstance().preload();
+			MediaPanel.getInstance().preLoad();
+			AppPanel.getInstance().preLoad();
 		}
 	}
 
@@ -365,12 +358,12 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		return ComUtil.pathConcat(rompath,"logo.bin");
 	}
 
-	public void doModifySystem(){
+	public void repackSystem(){
 		BinUtil.rm(mSysImgPath);
 		BinUtil.makeExt4Fs(mSysImgPath, SYSTEM_DIR, mSysImgSizeMb);
 	}
 
-	public void doModifyUserdata(){
+	public void repackUserdata(){
 		BinUtil.rm(mDataImgPath);
 		BinUtil.makeExt4Fs(mDataImgPath, USERDATA_DIR, mDataImgSizeMb);
 	}
@@ -381,5 +374,13 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		BinUtil.ext4(USERDATA_IMGEXT, ComUtil.USERDATA_DIR);
 		mDataImgSizeMb = (int)FileUtil.getFileSizes(USERDATA_IMGEXT) / 1024 / 1024;
 		BinUtil.rm(USERDATA_IMGEXT);
+	}
+
+	public void unpackSystem(){
+		BinUtil.simgToImg(mSysImgPath, SYSTEM_IMGEXT);
+		BinUtil.mkdir(ComUtil.SYSTEM_DIR);
+		BinUtil.ext4(SYSTEM_IMGEXT,ComUtil.SYSTEM_DIR);
+		mSysImgSizeMb = (int)FileUtil.getFileSizes(SYSTEM_IMGEXT) / 1024 / 1024;
+		BinUtil.rm(SYSTEM_IMGEXT);
 	}
 }

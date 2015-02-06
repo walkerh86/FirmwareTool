@@ -120,17 +120,23 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 		setDynamicSize(size);
 	}
 
-	public synchronized static AppPanel getInstance()
-	{
-		if (aPanel == null)
-		{
+	public synchronized static AppPanel getInstance(){	
+		if (aPanel == null){		
 			aPanel = new AppPanel();
 		}
 		return aPanel;
 	}
 
-	public static int getApkItem()
-	{
+	public void preLoad(){
+		if(dlm != null){
+			dlm.removeAllElements();
+		}
+		if(cb_both != null){
+			cb_both.setSelected(true);
+		}
+	}
+
+	public static int getApkItem(){	
 		if (cb_both.isSelected())
 			return APK_ITEM_VENDOR;
 		else if (cb_nrm.isSelected())
@@ -140,56 +146,41 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 		return -1;
 	}
 
-	public static int getListSize()
-	{
+	public static int getListSize(){	
 		int filecount = jlist.getModel().getSize();
 		long total = 0;
-		for (int i = 0; i < filecount; i++)
-		{
-			try
-			{
+		for (int i = 0; i < filecount; i++){
+			try{
+			
 				File f = (File) jlist.getModel().getElementAt(i);
 				total += FileUtil.getFileSizes(f);
-			}
-			catch (Exception e)
-			{
+			}catch (Exception e){
 				e.printStackTrace();
 			}
 		}
 		return FileUtil.FormatFileSize(total);
 	}
 
-	public File[] getApkList()
-	{
-
+	public File[] getApkList(){
 		int filecount = jlist.getModel().getSize();
 		File[] files = new File[filecount];
-		for (int i = 0; i < filecount; i++)
-		{
-			try
-			{
+		for (int i = 0; i < filecount; i++){		
+			try{
 				File f = (File) jlist.getModel().getElementAt(i);
 				files[i] = f;
-			}
-			catch (Exception e)
-			{
+			}catch (Exception e){
 				e.printStackTrace();
 			}
 		}
 		return files;
 	}
 
-	public static boolean setDynamicSize(int size)
-	{
-
-		if (size > FirmwarePanel.allowSize)
-		{
+	public static boolean setDynamicSize(int size){
+		if (size > FirmwarePanel.allowSize){		
 			jl_total.setForeground(Color.RED);
 			jl_total.setText(size + "M  ");
 			return false;
-		}
-		else
-		{
+		}else{
 			jl_total.setForeground(Color.GREEN);
 			jl_total.setText(size + "M  ");
 			return true;

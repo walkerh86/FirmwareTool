@@ -93,6 +93,15 @@ public class MediaPanel extends JPanel{
 		}
 	}
 
+	public void preLoad(){
+		Iterator<Map.Entry<String,MediaItemView>> iter = mMediaItemViews.entrySet().iterator();
+		while(iter.hasNext()){
+			Map.Entry<String,MediaItemView> entry = iter.next();
+			MediaItemView item = (MediaItemView)entry.getValue();
+			item.reset();
+		}
+	}
+
 	private boolean isAndroidVerKK(){
 		return PropManager.getInstance().getAndroidVersion().startsWith("4.4");
 	}
@@ -384,6 +393,15 @@ public class MediaPanel extends JPanel{
 		public boolean doRealModify(){
 			return true;
 		}
+
+		public void reset(){
+			if(mTextView != null){
+				mTextView.setText("");
+			}
+			if(mJLabel != null){
+				mJLabel.setForeground(ComUtil.COLOR_MARK_UNMODIFIED);
+			}
+		}
 	}
 
 	private class LogoItemView extends MediaItemView{
@@ -429,6 +447,8 @@ public class MediaPanel extends JPanel{
 		private JTextField mFps;
 		private JLabel mFpsLabel;
 		private String mDstAnim;
+		private static final boolean DEFAULT_LOOP_ENABLE = false;
+		private static final String DEFAULT_FPS_VALUE = "10";
 				
 		public AnimItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect) {
 			super(label, selMode, filter, title, rect);
@@ -463,7 +483,7 @@ public class MediaPanel extends JPanel{
 			mFpsLabel = new JLabel("播放帧率");
 			mFpsLabel.setBounds(mRect.x+mRect.width-browseColSize-fpsColSize-fpsLabelColSize,mRect.y,fpsLabelColSize,mRect.height);
 			add(mFpsLabel);
-			mFps = new JTextField("10");
+			mFps = new JTextField(DEFAULT_FPS_VALUE);
 			mFps.setBounds(mRect.x+mRect.width-browseColSize-fpsColSize,mRect.y,fpsColSize,mRect.height);
 			add(mFps);
 		}
@@ -535,6 +555,13 @@ public class MediaPanel extends JPanel{
 			if(mFps != null){
 				mFps.setEnabled(enable);
 			}
+		}
+
+		@Override
+		public void reset(){
+			super.reset();
+			mLoop.setSelected(DEFAULT_LOOP_ENABLE);
+			mFps.setText(DEFAULT_FPS_VALUE);
 		}
 	}
 

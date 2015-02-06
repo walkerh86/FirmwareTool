@@ -103,6 +103,7 @@ public class InfoPanel extends JPanel{
 				value += "_"+subValue;
 			}
 			item.setValue(value);
+			item.setModified(false);
 		}
 	}
 

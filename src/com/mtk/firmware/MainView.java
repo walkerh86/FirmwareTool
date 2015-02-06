@@ -311,11 +311,11 @@ public class MainView extends JFrame implements ActionListener
 			appPanel.doModify();
 
 			if(isUserdataModified()){
-				firmwarePanel.doModifyUserdata();
+				firmwarePanel.repackUserdata();
 			}
 			
 			if (isSystemModified()){			
-				firmwarePanel.doModifySystem();
+				firmwarePanel.repackSystem();
 			}
 		}catch (Exception e){				
 			e.printStackTrace();
