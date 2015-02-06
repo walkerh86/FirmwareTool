@@ -61,11 +61,12 @@ public class Language
 	{
 
 		List nodes = root1Elm.elements("item");
-		model.addElement(new Item("", "-------------请选择-------------"));
+		model.addElement(new Item("", "-------------请选择-------------","-1"));
+		int index = 1;
 		for (Iterator<Element> it = nodes.iterator(); it.hasNext();)
 		{
 			Element elm = (Element) it.next();
-			model.addElement(new Item(elm.attributeValue("id"), elm.attributeValue("value")));
+			model.addElement(new Item(elm.attributeValue("id"), elm.attributeValue("value"), String.valueOf(index++)));
 		}
 		return model;
 	}

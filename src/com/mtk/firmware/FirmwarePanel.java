@@ -29,7 +29,11 @@ import ch.ethz.ssh2.ChannelCondition;
 import ch.ethz.ssh2.SCPClient;
 import ch.ethz.ssh2.Session;
 
+import com.mtk.firmware.util.BinUtil;
+import com.mtk.firmware.util.ComUtil;
 import com.mtk.firmware.util.FileUtil;
+import com.mtk.firmware.util.Log;
+import com.mtk.firmware.util.PropManager;
 
 public class FirmwarePanel extends JPanel implements ActionListener
 {
@@ -41,10 +45,18 @@ public class FirmwarePanel extends JPanel implements ActionListener
 	private static FirmwarePanel	fPanel;
 	public static JProgressBar		current;
 	public static JFrame			progressFrame;
-	public static String			src_systemimg;
 	public static String			rompath;
 
-	public final static String		FILE_SEPARATOR		= System.getProperty("file.separator");
+	public static final String	SYSTEM_IMGEXT = ComUtil.pathConcat(ComUtil.OUT_DIR,"system.img.ext4");
+	public static final String SYSTEM_DIR = ComUtil.pathConcat(ComUtil.OUT_DIR,"system");
+	public static final String FRAMEWORK_RES_APK = ComUtil.pathConcat(SYSTEM_DIR,"framework","framework-res.apk");
+	public static final String	USERDATA_IMGEXT = ComUtil.pathConcat(ComUtil.OUT_DIR,"userdata.img.ext4");
+	public static final String USERDATA_DIR = ComUtil.pathConcat(ComUtil.OUT_DIR,"data");
+
+	private String mSysImgPath;
+	private String mDataImgPath;
+	private int mSysImgSizeMb;
+	private int mDataImgSizeMb;
 
 	private FirmwarePanel()
 	{
@@ -64,7 +76,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		firmwarePath.setFocusable(false);
 		selectButton = new JButton("浏览..");
 		selectButton.addActionListener(this);
-		JLabel jl = new JLabel("请选择固件目录");
+		JLabel jl = new JLabel("固件目录(请先备份！)");
 		jl.setToolTipText("请选择要修改的固件目录，此处只能选择目录");
 		firmwarePath.setToolTipText("请选择要修改的固件目录，此处只能选择目录");
 		add(jl);
@@ -90,6 +102,9 @@ public class FirmwarePanel extends JPanel implements ActionListener
 	{
 		rompath = path;
 		firmwarePath.setText(path);
+
+		mSysImgPath = ComUtil.pathConcat(rompath,"system.img");
+		mDataImgPath = ComUtil.pathConcat(rompath,"userdata.img");
 	}
 
 	public void setAndroidSize()
@@ -157,10 +172,41 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		setEnabled(bool);
 	}
 
+	private boolean romCheck(String sysDir){
+		String tmpDir = ComUtil.pathConcat(ComUtil.OUT_DIR,"temp");
+		BinUtil.rm(tmpDir);
+		
+		String checkFilePath = ComUtil.pathConcat("res","drawable","ltty_background_dark.xml");
+		BinUtil.unzipExtractNoLog(FRAMEWORK_RES_APK, checkFilePath, tmpDir);
+		File checkFile = new File(ComUtil.pathConcat(tmpDir,checkFilePath));
+		if(!checkFile.exists()){
+			System.out.print("romCheck fail1\n");
+			BinUtil.rm(tmpDir);
+			return false;
+		}
+		BinUtil.rm(tmpDir);
+		
+		checkFilePath = ComUtil.pathConcat(SYSTEM_DIR,"etc","ty-conf.conf");
+		checkFile = new File(checkFilePath);
+		if(!checkFile.exists()){
+			System.out.print("romCheck fail2\n");
+			return false;
+		}
+		
+		PropManager mPropManager = PropManager.getInstance();
+		mPropManager.loadProps();
+		if(!mPropManager.isPorpSupport("ro.ty.auth")){
+			System.out.print("romCheck fail3\n");
+			return false;
+		}
+
+		return true;
+	}
+
 	class ProGressWork extends SwingWorker<List<Work>, Work>
 	{
 		List<Work>	list	= new ArrayList<Work>();
-		boolean mIsSysImgValid = false;
+		boolean mRomValid = false;
 
 		private void updateProgress(final int value)
 		{
@@ -191,49 +237,29 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		@Override
 		protected List<Work> doInBackground() throws Exception
 		{
-			MainView.writeLog("====================================Begin readback system.img====================================");
-			String tmpdir = MainView.wrapper(MainView.TMP_DIR);
-			String sytemdir = MainView.wrapper(MainView.SYSTEM_DIR);
+			Log.i("====================================Begin readback system.img====================================");
+			String tmpdir = ComUtil.OUT_DIR;
+			String sytemdir = ComUtil.SYSTEM_DIR;
 			MainView.getInstance().updateTabbedPane(false);
 			current.setValue(0);
 			updateProgress(90);
-			if (new File(MainView.TMP_DIR).exists())
-			{
-				MainView.writeLog(MainView.RM + tmpdir + "-rf");
-				MainView.cleanBuff(Runtime.getRuntime().exec(MainView.RM + tmpdir + "-rf"));
+			
+			if (new File(tmpdir).exists()){			
+				BinUtil.rm(tmpdir);
 			}
-			MainView.writeLog(MainView.MKDIR + tmpdir);
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.MKDIR + tmpdir));
+			BinUtil.mkdir(tmpdir);
+			BinUtil.simgToImg(mSysImgPath, SYSTEM_IMGEXT);
+			BinUtil.mkdir(sytemdir);
+			BinUtil.ext4(SYSTEM_IMGEXT,sytemdir);
+			mSysImgSizeMb = (int)FileUtil.getFileSizes(SYSTEM_IMGEXT) / 1024 / 1024;
+			BinUtil.rm(SYSTEM_IMGEXT);
 
-			MainView.writeLog(MainView.COPY + src_systemimg + tmpdir);
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.COPY + src_systemimg + tmpdir));
-
-			MainView.writeLog(MainView.SIMG2IMG + MainView.SYSTEMIMG + MainView.SYSTEMIMGEXT);
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.SIMG2IMG + MainView.SYSTEMIMG + MainView.SYSTEMIMGEXT));
-
-			MainView.writeLog(MainView.MKDIR + sytemdir);
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.MKDIR + sytemdir));
-
-			MainView.writeLog(MainView.EXT4 + MainView.SYSTEMIMGEXT + sytemdir);
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.EXT4 + MainView.SYSTEMIMGEXT + sytemdir));
-/*
-			MainView.writeLog(MainView.UNZIP + MainView.FRAMWORK_RES
-													+"\""+MainView.TY_SYS_IMG_AUTHEN_FILE+"\""
-													+ " -d "+"\""+MainView.TY_TEMP_DIR+"\"");*/
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.UNZIP + MainView.FRAMWORK_RES
-													+"\""+MainView.TY_SYS_IMG_AUTHEN_FILE+"\""
-													+ " -d "+"\""+MainView.TY_TEMP_DIR+"\""));
-			File authenFile = new File(MainView.TY_SYS_IMG_AUTHEN_FILE_PATH);
-			File authenFile2 = new File(MainView.TY_SYS_IMG_AUTHEN_FILE2_PATH);
-			if(authenFile.exists() && authenFile2.exists() && InfoPanel.getInstance().authenProp()){
-				mIsSysImgValid = true;
-			}else{
-				MainView.cleanBuff(Runtime.getRuntime().exec(MainView.RM + tmpdir + "-rf"));
+			mRomValid = romCheck(sytemdir);
+			if(!mRomValid){
+				BinUtil.rm(sytemdir);
 			}
-			MainView.cleanBuff(Runtime.getRuntime().exec(MainView.RM+" \"" + MainView.TY_TEMP_DIR+"\" " + "-rf"));
-
-			for (int i = 90; i <= 100; i++)
-			{
+			
+			for (int i = 90; i <= 100; i++){			
 				current.setValue(i);
 			}
 			return list;
@@ -251,9 +277,9 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		@Override
 		protected void done()
 		{
-			MainView.writeLog("====================================Readback system.img finish====================================");
+			Log.i("====================================Readback system.img finish====================================");
 			progressFrame.setVisible(false);
-			if(!mIsSysImgValid){
+			if(!mRomValid){
 				JOptionPane.showMessageDialog(null,"ROM非法");
 				return;
 			}
@@ -292,21 +318,20 @@ public class FirmwarePanel extends JPanel implements ActionListener
 				{
 					try
 					{
-						src_systemimg = MainView.wrapper(file.getAbsolutePath() + "\\system.img");
 						setFirmwarePath(file.getAbsolutePath());
 						setAndroidSize();
-						MainView.writeLog("Firmware path:" + file.getAbsolutePath());
-						MainView.writeLog("Android parttion size:" + systemSize + "M");
+						Log.i("Firmware path:" + file.getAbsolutePath());
+						Log.i("Android parttion size:" + systemSize + "M");
 						int realsize = FileUtil.FormatFileSize(FileUtil.getFileSizes(new File(file.getAbsolutePath() + "\\system.img")));
-						MainView.writeLog("systemimg size:" + realsize + "M");
+						Log.i("systemimg size:" + realsize + "M");
 						if (realsize <= 10)
 						{
 							JOptionPane.showMessageDialog(null, "固件目录下的system.img损坏,请查看大小是否为0KB！！！");
-							MainView.writeLog("system.img损坏");
+							Log.i("system.img损坏");
 							return;
 						}
 						allowSize = systemSize - realsize;
-						MainView.writeLog("Allow add apk size:" + allowSize + "M");
+						Log.i("Allow add apk size:" + allowSize + "M");
 						new ProGressWork().execute();
 						progressFrame.setVisible(true);
 						MediaPanel.pref.put("last", file.getAbsolutePath());
@@ -314,15 +339,47 @@ public class FirmwarePanel extends JPanel implements ActionListener
 					}
 					catch (Exception e1)
 					{
-						MainView.writeLog(e1.toString());
+						Log.i(e1.toString());
 					}
 				}
 				else
 				{
 					JOptionPane.showMessageDialog(null, "该目录不是固件目录！！！");
-					MainView.writeLog("该目录不是固件目录！！！");
+					Log.i("该目录不是固件目录！！！");
 				}
 			}
 		}
+	}
+
+	public String getSystemImgPath(){
+		return mSysImgPath;
+	}
+
+	public String getUserdataImgPath(){
+		//return "E:\\roms\\TY0712B_3G-HD-2_KK_V2.4.1_150130\\software\\userdata.img";
+		return mDataImgPath;
+	}
+
+	public String getLogoBinPath(){
+		//return "E:\\roms\\TY0712B_3G-HD-2_KK_V2.4.1_150130\\software\\logo.bin";
+		return ComUtil.pathConcat(rompath,"logo.bin");
+	}
+
+	public void doModifySystem(){
+		BinUtil.rm(mSysImgPath);
+		BinUtil.makeExt4Fs(mSysImgPath, SYSTEM_DIR, mSysImgSizeMb);
+	}
+
+	public void doModifyUserdata(){
+		BinUtil.rm(mDataImgPath);
+		BinUtil.makeExt4Fs(mDataImgPath, USERDATA_DIR, mDataImgSizeMb);
+	}
+
+	public void unpackUserData(){
+		BinUtil.simgToImg(getUserdataImgPath(), USERDATA_IMGEXT);
+		BinUtil.mkdir(ComUtil.USERDATA_DIR);
+		BinUtil.ext4(USERDATA_IMGEXT, ComUtil.USERDATA_DIR);
+		mDataImgSizeMb = (int)FileUtil.getFileSizes(USERDATA_IMGEXT) / 1024 / 1024;
+		BinUtil.rm(USERDATA_IMGEXT);
 	}
 }

@@ -1,5 +1,7 @@
 package com.mtk.firmware;
 
+import com.mtk.firmware.util.ComUtil;
+import com.mtk.firmware.util.Log;
 import com.mtk.firmware.util.ZLib;
 
 import java.io.BufferedInputStream;
@@ -90,9 +92,9 @@ public class Logo
 		return buffer;
 	}
 
-	public void unpack()
+	public void unpack(String dstPath)
 	{
-		MainView.writeLog("====================================Begin to unpack logo.bin====================================");
+		Log.i("====================================Begin to unpack logo.bin====================================");
 		byte[] buf = new byte[4096];
 		DataInputStream in = null;
 		DataOutputStream out = null;
@@ -102,10 +104,10 @@ public class Logo
 			in = new DataInputStream(new BufferedInputStream(new FileInputStream(logoFile)));
 
 			header_sig = in.readInt();
-			MainView.writeLog("header_sig=" + toHex(toLH((header_sig))));
+			Log.i("header_sig=" + toHex(toLH((header_sig))));
 
 			byte[] logo_length = toLH(in.readInt());
-			MainView.writeLog("logo_length=" + Integer.parseInt(toHex(logo_length).split("0x")[1], 16));
+			Log.i("logo_length=" + Integer.parseInt(toHex(logo_length).split("0x")[1], 16));
 
 			name = new byte[name_length];
 			in.read(name, 0, name.length);
@@ -116,19 +118,19 @@ public class Logo
 			}
 
 			byte[] logo_addr = toLH(in.readInt());
-			MainView.writeLog("logo_addr=" + toHex(logo_addr));
+			Log.i("logo_addr=" + toHex(logo_addr));
 
 			byte[] header = new byte[header_length];
 			in.read(header, 0, header_length - 4 - 4 - 32 - 4);
 			fileCount = in.readByte();
-			MainView.writeLog("num=" + fileCount);
+			Log.i("num=" + fileCount);
 
 			in.read(buf, 0, 7);
 			int[] addrs = new int[fileCount];
 			for (int i = 0; i < fileCount; i++)
 			{
 				addrs[i] = Integer.parseInt(toHex(toLH(in.readInt())).split("0x")[1], 16);
-				MainView.writeLog("addr[" + i + "]" + toHex(toLH(addrs[i])));
+				Log.i("addr[" + i + "]" + toHex(toLH(addrs[i])));
 			}
 			for (int i = 0; i < fileCount; i++)
 			{
@@ -143,18 +145,18 @@ public class Logo
 					size = addrs[i + 1] - addrs[i];
 				}
 
-				MainView.writeLog("size[" + i + "]" + size);
+				Log.i("size[" + i + "]" + size);
 				byte[] temfile = new byte[size];
 				in.read(temfile, 0, size);
 
-				File raw = new File(MainView.LOGO_DIR + MainView.FILE_SEPARATOR + i + ".raw");
+				File raw = new File(ComUtil.pathConcat(dstPath, i + ".raw"));
 				out = new DataOutputStream(new FileOutputStream(raw));
 				raw.createNewFile();
 				out.write(ZLib.Inflate(temfile));
 				out.close();
 			}
 			in.close();
-			MainView.writeLog("====================================Finish make logo.bin====================================");
+			Log.i("====================================Finish make logo.bin====================================");
 		}
 		catch (FileNotFoundException e)
 		{
@@ -170,7 +172,7 @@ public class Logo
 		}
 	}
 
-	public void repack()
+	public void repack(String dstPath)
 	{
 		try
 		{
@@ -179,16 +181,16 @@ public class Logo
 			addrs[0] = total;
 			for (int i = 0; i < fileCount; i++)
 			{
-				File f = new File(MainView.LOGO_DIR + MainView.FILE_SEPARATOR + i + ".raw");
+				File f = new File(ComUtil.pathConcat(dstPath, i + ".raw"));
 				byte[] end = ZLib.Deflate(getBytes(f.getAbsolutePath()));
-				MainView.writeLog("File[" + i + "]" + toHex(toLH(addrs[i])));
+				Log.i("File[" + i + "]" + toHex(toLH(addrs[i])));
 				if (i < fileCount - 1)
 				{
 					addrs[i + 1] = addrs[i] + end.length;
 				}
 				total += end.length;
 			}
-			MainView.writeLog("total=" + total);
+			Log.i("total=" + total);
 
 			DataOutputStream out = new DataOutputStream(new FileOutputStream(logoFile));
 			logoFile.delete();
@@ -209,7 +211,7 @@ public class Logo
 			}
 			for (int i = 0; i < fileCount; i++)
 			{
-				File f = new File(MainView.LOGO_DIR + MainView.FILE_SEPARATOR + i + ".raw");
+				File f = new File(ComUtil.pathConcat(dstPath, i + ".raw"));
 				byte[] end = ZLib.Deflate(getBytes(f.getAbsolutePath()));
 				out.write(end);
 			}

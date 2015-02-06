@@ -29,6 +29,26 @@ public class FileUtil
 		return s;
 	}
 
+	public static long getFileSizes(String filePath){
+		long s = 0;
+		
+		try{
+			File f = new File(filePath);
+			if (f.exists()){			
+				FileInputStream fis = null;
+				fis = new FileInputStream(f);
+				s = fis.available();
+				fis.close();
+			}else{
+				f.createNewFile();
+				System.out.println("文件不存在");
+			}
+		}catch(IOException e){
+		}
+
+		return s;
+	}
+
 	public static long getDirSize(File f) throws Exception // 获取目录内文件总大小
 	{
 		long size = 0;

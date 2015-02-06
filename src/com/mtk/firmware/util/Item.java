@@ -4,11 +4,17 @@ public class Item
 {
 	private String	id;
 	private String	description;
+	private String mIndex;
 
-	public Item(String id, String description)
+	public Item(String id, String description, String index)
 	{
 		this.id = id;
 		this.description = description;
+		this.mIndex = index;
+	}
+
+	public String getIndex(){
+		return mIndex;
 	}
 
 	public String getId()

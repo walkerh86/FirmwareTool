@@ -9,6 +9,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -19,13 +25,17 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.filechooser.FileFilter;
 
+import com.mtk.firmware.util.BinUtil;
+import com.mtk.firmware.util.ComUtil;
 import com.mtk.firmware.util.FileUtil;
 import com.mtk.firmware.util.GenericFileFilter;
+import com.mtk.firmware.util.Log;
 
 public class AppPanel extends JPanel implements ActionListener, ItemListener
 {
@@ -43,6 +53,10 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 	private DefaultListModel	dlm;
 	private String				lastPath;
 	private static JLabel		jl_total;
+
+	private static final int APK_ITEM_VENDOR = 0; //can remove & recovery
+	private static final int APK_ITEM_SYSTEM = 1; //cannot remove
+	private static final int APK_ITEM_DATA = 2; //cannot recovery
 
 	private AppPanel()
 	{
@@ -118,11 +132,11 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 	public static int getApkItem()
 	{
 		if (cb_both.isSelected())
-			return 0;
+			return APK_ITEM_VENDOR;
 		else if (cb_nrm.isSelected())
-			return 1;
+			return APK_ITEM_SYSTEM;
 		else if (cb_nre.isSelected())
-			return 2;
+			return APK_ITEM_DATA;
 		return -1;
 	}
 
@@ -168,7 +182,7 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 	public static boolean setDynamicSize(int size)
 	{
 
-		if (size > FirmwarePanel.allowSize && (getApkItem() == 0 || getApkItem() == 1))
+		if (size > FirmwarePanel.allowSize)
 		{
 			jl_total.setForeground(Color.RED);
 			jl_total.setText(size + "M  ");
@@ -182,13 +196,121 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 		}
 	}
 
-	public boolean hasModify()
-	{
+	private HashMap<String, String> mWaitCopyLibs = new HashMap<String, String>();
+	public long getLibsSize(){
+		mWaitCopyLibs.clear();
+		
+		int apkItem = getApkItem();
+		if(apkItem != APK_ITEM_SYSTEM){
+			return 0;
+		}
+		
+		long libsSize = 0;
+		String tmpApkLibDir = ComUtil.pathConcat(ComUtil.OUT_DIR,"apklib");
+		ComUtil.mkTempDir(tmpApkLibDir);
+		
+		String armeabiDir = ComUtil.pathConcat("lib","armeabi");
+		String armeabiV7Dir = ComUtil.pathConcat("lib","armeabi-v7a");
+		String armeabiPath = ComUtil.pathConcat(tmpApkLibDir,armeabiDir);
+		String armeabiV7Path = ComUtil.pathConcat(tmpApkLibDir,armeabiV7Dir);
+		File[] apkFileList = getApkList();
+		for(File apkFile : apkFileList){
+			String srcPath = apkFile.getAbsolutePath();
+			BinUtil.unzipExtract(srcPath, ComUtil.pathConcat(armeabiV7Dir,"*"), tmpApkLibDir);
+			if(! new File(armeabiV7Path).exists()){
+				BinUtil.unzipExtract(srcPath, ComUtil.pathConcat(armeabiDir,"*"), tmpApkLibDir);
+			}
+		}
+		
+		String[] libPaths = new String[]{armeabiV7Path,armeabiPath};
+		for(String libPath : libPaths){
+			String[] libList = new File(libPath).list();
+			if(libList != null){
+				for(String lib : libList){
+					if(mWaitCopyLibs.containsKey(lib)){
+						continue;
+					}
+					String libFilePath = ComUtil.pathConcat(libPath,lib);
+					File libFile = new File(libFilePath);
+					if(libFile.isDirectory()){
+						continue;
+					}
+					libsSize += libFile.length();
+					mWaitCopyLibs.put(lib,libFilePath);
+				}
+			}
+		}
+		return libsSize;
+	}
+
+	public boolean isModifiedValid(){
+		int apksSize = getListSize();
+		int addSize = apksSize+FileUtil.FormatFileSize(getLibsSize());
+				
+		if(!setDynamicSize(addSize)){
+			if(apksSize > FirmwarePanel.allowSize){
+				JOptionPane.showMessageDialog(null, "APK容量超过允许大小，只允许添加" + FirmwarePanel.allowSize + "M,请删除部分APK,或者修改分区！！");
+			}else{
+				JOptionPane.showMessageDialog(null, "不可卸载模式导致APK容量超过允许大小" + FirmwarePanel.allowSize + "M,请删除部分APK,或者修改模式！！");
+			}
+			return false;
+		}
+		return true;
+	}
+
+	public boolean isModified(){	
 		return getApkList().length > 0;
 	}
 
-	public void setAppPanelEnable(boolean bool)
-	{
+	public boolean isSystemModified(){
+		boolean modified = getApkList().length > 0 && (getApkItem() == 0 || getApkItem() == 1);
+		//Log.i("appPenel, isSystemModified="+modified);
+		return modified;
+	}
+
+	public boolean isUserdataModified(){
+		return getApkList().length > 0 && getApkItem() == 2;
+	}
+
+	public void doModify(){
+		if(getApkList().length == 0){
+			return;
+		}
+
+		String dstApkDir = null;
+		int apkItem = getApkItem();
+		if (apkItem == 0){
+			dstApkDir = ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"vendor","operator","app");
+		}else if (apkItem == 1){
+			dstApkDir = ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app");
+		}else if (apkItem == 2){
+			dstApkDir = ComUtil.pathConcat(ComUtil.USERDATA_DIR,"app");
+			FirmwarePanel.getInstance().unpackUserData();
+		}else{
+			return;
+		}
+
+		if(!new File(dstApkDir).exists()){
+			BinUtil.mkdir(dstApkDir);
+		}
+		File[] apkFileList = getApkList();
+		for(File apkFile : apkFileList){
+			UUID name = UUID.randomUUID();
+			String srcPath = apkFile.getAbsolutePath();
+			String dstPath = ComUtil.pathConcat(dstApkDir,name+".apk");
+			BinUtil.copy(srcPath, dstPath);
+		}
+		
+		if (apkItem == 1 && mWaitCopyLibs.size() > 0){
+			Iterator<Map.Entry<String, String>> iter = mWaitCopyLibs.entrySet().iterator();
+			while(iter.hasNext()){
+				Map.Entry<String, String> entry = iter.next();
+				BinUtil.copy(entry.getValue(),ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"lib",entry.getKey()));
+			}
+		}
+	}
+
+	public void setAppPanelEnable(boolean bool){
 		cb_both.setEnabled(bool);
 		cb_nre.setEnabled(bool);
 		cb_nrm.setEnabled(bool);
