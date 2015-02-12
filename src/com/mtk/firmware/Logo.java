@@ -92,9 +92,7 @@ public class Logo
 		return buffer;
 	}
 
-	public void unpack(String dstPath)
-	{
-		Log.i("====================================Begin to unpack logo.bin====================================");
+	public void unpack(String dstPath){	
 		byte[] buf = new byte[4096];
 		DataInputStream in = null;
 		DataOutputStream out = null;
@@ -156,7 +154,7 @@ public class Logo
 				out.close();
 			}
 			in.close();
-			Log.i("====================================Finish make logo.bin====================================");
+			Log.i("------------------unpack logo.bin finished");
 		}
 		catch (FileNotFoundException e)
 		{
@@ -221,7 +219,7 @@ public class Logo
 		{
 			e1.printStackTrace();
 		}
-
+		Log.i("------------------repack logo.bin finished");
 	}
 
 }

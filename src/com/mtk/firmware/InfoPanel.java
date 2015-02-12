@@ -42,6 +42,12 @@ public class InfoPanel extends JPanel{
 
 	private PropManager mPropManager;
 
+	private static final LinkedHashSet<PropItemView> mPropModifiedSets = new LinkedHashSet<PropItemView>();
+	private static final LinkedHashSet<PropItemView> mPropSets = new LinkedHashSet<PropItemView>();
+	
+	private static final int PROP_ITEM_COLS = 25;
+	private static final int PROP_ITEM_LABEL_COLS = 6;
+
 	private InfoPanel(){	
 		setLayout(null);
 		initProps();
@@ -50,16 +56,58 @@ public class InfoPanel extends JPanel{
 	public synchronized static InfoPanel getInstance(){
 		if (iPanel == null){
 			iPanel = new InfoPanel();
+			if(ComUtil.DEBUG_MODE){
+				iPanel.preload();
+			}
 		}
 		return iPanel;
 	}
 
 	public boolean isModified(){
-		boolean modified = false;
+		mPropModifiedSets.clear();
+		
 		Iterator<PropItemView> iter = mPropSets.iterator();
 		while(iter.hasNext()){
 			PropItemView item = iter.next();
-			modified = item.isModified();
+			if(item.isModified()){
+				mPropModifiedSets.add(item);
+			}
+		}
+		//Log.i("infoPenel, isSystemModified="+modified);
+		return mPropModifiedSets.size() > 0;
+	}
+
+	public void doModify(){
+		if(mPropManager == null || mPropModifiedSets.size() == 0){
+			return;
+		}
+		mPropManager.clearModified();
+		Iterator<PropItemView> iter = mPropModifiedSets.iterator();
+		while(iter.hasNext()){
+			PropItemView item = iter.next();
+			String key = item.getKey();
+			if(key.equals("ro.product.locale.language")){
+				String value = item.getValue();
+				String[] splitValue = value.split("_");
+				if(splitValue.length == 2){
+					mPropManager.setValue(key,splitValue[0]);
+					mPropManager.setValue("ro.product.locale.region",splitValue[1]);
+					item.setModified(true);
+				}
+			}else{
+				mPropManager.setValue(key,item.getValue());
+				item.setModified(true);
+			}
+		}
+		mPropManager.save();
+	}
+
+	public boolean isSystemModified(){
+		boolean modified = false;
+		Iterator<PropItemView> iter = mPropModifiedSets.iterator();
+		while(iter.hasNext()){
+			PropItemView item = iter.next();
+			modified = item.isModifySuccessed();
 			if(modified){
 				break;
 			}
@@ -68,11 +116,18 @@ public class InfoPanel extends JPanel{
 		return modified;
 	}
 
+	public void finishModify(){
+		mPropModifiedSets.clear();
+	}
+
 	public boolean isModifiedValid(){
 		return true;
 	}
 
-	public void setInfoPanelEnable(boolean bool){
+	public void setEnabled(boolean bool){
+		if(ComUtil.DEBUG_MODE){
+			return;
+		}		
 		if(mPropManager == null){
 			mPropManager = PropManager.getInstance();
 		}
@@ -103,38 +158,10 @@ public class InfoPanel extends JPanel{
 				value += "_"+subValue;
 			}
 			item.setValue(value);
-			item.setModified(false);
+			//item.setModified(false);
 		}
 	}
 
-	public void doModify(){
-		if(mPropManager == null){
-			return;
-		}
-		Iterator<PropItemView> iter = mPropSets.iterator();
-		while(iter.hasNext()){
-			PropItemView item = iter.next();
-			if(item.isModified()){
-				String key = item.getKey();
-				if(key.equals("ro.product.locale.language")){
-					String value = item.getValue();
-					String[] splitValue = value.split("_");
-					if(splitValue.length == 2){
-						mPropManager.setValue(key,splitValue[0]);
-						mPropManager.setValue("ro.product.locale.region",splitValue[1]);
-						item.setModified(true);
-					}
-				}else{
-					mPropManager.setValue(key,item.getValue());
-					item.setModified(true);
-				}
-			}
-		}
-		mPropManager.save();
-	}
-
-	private static final int PROP_ITEM_COLS = 25;
-	private static final int PROP_ITEM_LABEL_COLS = 6;
 	private void initProps(){		
 		mPropSets.add(new TimeZoneListPropItemView("persist.sys.timezone","默认时区", MainView.getBounds(0, 0, 1, PROP_ITEM_COLS)));
 		LanguageListPropItemView item = new LanguageListPropItemView("ro.product.locale.language","默认语言", MainView.getBounds(0, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS));
@@ -172,7 +199,6 @@ public class InfoPanel extends JPanel{
 		}
 	}
 	
-	private static final LinkedHashSet<PropItemView> mPropSets = new LinkedHashSet<PropItemView>();
 	private abstract class PropItemView{
 		protected String mKey;
 		protected String mSubKey;
@@ -181,11 +207,17 @@ public class InfoPanel extends JPanel{
 		protected Rectangle mRect;
 		private boolean mIsDualKey;
 		protected JComponent mJLabel;
+		private int mState;
+		private static final int STATE_IDLE = 0;
+		private static final int STATE_MODIFIED = 1;
+		private static final int STATE_SUCCESS = 2;
+		private static final int STATE_FAILED = 3;
 		
 		public PropItemView(String key, String label, Rectangle rect){
 			mKey = key;
 			mLabel = label;
 			mRect = rect;
+			mState = STATE_IDLE;
 		}
 		
 		public void setSubKey(String subKey){
@@ -203,6 +235,7 @@ public class InfoPanel extends JPanel{
 		
 		public void setValue(String value){
 			mValue = value;
+			markState(STATE_IDLE);
 		}
 
 		public void setEnable(boolean enable){
@@ -216,17 +249,43 @@ public class InfoPanel extends JPanel{
 			return mIsDualKey;
 		}
 
-		public void setModified(boolean modified){
+		private void markState(int state){
+			if(mState == state){
+				return;
+			}
+			mState = state;
 			if(mJLabel == null){
 				return;
 			}
-			mJLabel.setForeground(modified ? ComUtil.COLOR_MARK_MODIFIED : ComUtil.COLOR_MARK_UNMODIFIED);
+			if(mState == STATE_SUCCESS){
+				mJLabel.setForeground(ComUtil.COLOR_MARK_MODIFIED);
+			}else if(mState == STATE_FAILED){
+				mJLabel.setForeground(ComUtil.COLOR_MARK_FAILED);
+			}else{
+				mJLabel.setForeground(ComUtil.COLOR_MARK_UNMODIFIED);
+			}
 		}
-		
+
+		public void setModified(boolean modified){
+			mValue = getValue();
+			markState(modified ? STATE_SUCCESS : STATE_IDLE );
+		}
+
+		public boolean isModified(){
+			boolean modified = isRealModified();
+			if(modified){
+				markState(STATE_MODIFIED);
+			}
+			return modified;
+		}
+
+		public boolean isModifySuccessed(){
+			return mState == STATE_SUCCESS;
+		}		
 		public abstract String getValue();
 		public abstract void addView(JPanel panel, int x, int y);
 		public abstract JComponent getEditComponet();
-		public abstract boolean isModified();
+		public abstract boolean isRealModified();
 	}
 	
 	private class TextPropItemView extends PropItemView{
@@ -266,7 +325,7 @@ public class InfoPanel extends JPanel{
 		}
 
 		@Override
-		public boolean isModified() {
+		public boolean isRealModified() {
 			//Log.i("PropItemView, key="+mKey+",old="+mValue+",new="+mTextView.getText());
 			return mValue != null ? !mValue.equals(mTextView.getText()) : false;
 		}
@@ -308,9 +367,15 @@ public class InfoPanel extends JPanel{
 		}
 
 		@Override
-		public boolean isModified() {
+		public boolean isRealModified() {
 			//Log.i("PropItemView, key="+mKey+",old="+mIsSelected+",new="+mJCheckBox.isSelected());
 			return mIsSelected^mJCheckBox.isSelected();
+		}
+		
+		@Override
+		public void setModified(boolean modified){
+			super.setModified(modified);
+			mIsSelected = mJCheckBox.isSelected();
 		}
 	}
 	
@@ -378,7 +443,7 @@ public class InfoPanel extends JPanel{
 		}
 
 		@Override
-		public boolean isModified() {
+		public boolean isRealModified() {
 			//Log.i("PropItemView, key="+mKey+",old="+mValue+",new="+mItem.getId());
 			return mValue != null ? !mValue.equals(mItem.getId()) : false;
 		}

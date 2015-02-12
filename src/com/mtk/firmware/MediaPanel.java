@@ -76,7 +76,10 @@ public class MediaPanel extends JPanel{
 		}
 	}
 	
-	public void setMediaPanelEnable(boolean enable){
+	public void setEnabled(boolean enable){
+		if(ComUtil.DEBUG_MODE){
+			return;
+		}
 		Iterator<Map.Entry<String,MediaItemView>> iter = mMediaItemViews.entrySet().iterator();
 		while(iter.hasNext()){
 			Map.Entry<String,MediaItemView> entry = iter.next();
@@ -127,7 +130,7 @@ public class MediaPanel extends JPanel{
 		while(iter.hasNext()){
 			Map.Entry<String,MediaItemView> entry = iter.next();
 			MediaItemView item = (MediaItemView)entry.getValue();
-			modified = item.isModified();
+			modified = item.isModifySuccessed();
 			if(modified){
 				String key = entry.getKey();
 				if(key.equals(KEY_LOGO_UBOOT) || key.equals(KEY_LOGO_UBOOT2) ||
@@ -162,6 +165,10 @@ public class MediaPanel extends JPanel{
 			}
 		}
 		return modified;
+	}
+
+	public void finishModify(){
+		
 	}
 
 	private boolean isHideLogoSupport(){
@@ -311,6 +318,11 @@ public class MediaPanel extends JPanel{
 		protected JLabel mJLabel;
 		protected JButton mBrowse;
 		protected Rectangle mRect;
+		private int mState;
+		private static final int STATE_IDLE = 0;
+		private static final int STATE_MODIFIED = 1;
+		private static final int STATE_SUCCESS = 2;
+		private static final int STATE_FAILED = 3;
 		
 		public MediaItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect){
 			mLabel = label;
@@ -318,11 +330,15 @@ public class MediaPanel extends JPanel{
 			mFileFilter = filter;
 			mTitle = title;
 			mRect = rect;
+			mState = STATE_IDLE;
 		}
 
 		public boolean isModified(){
-			String path = getMediaPath();
-			return path != null && path.length() > 0;
+			return mState == STATE_MODIFIED;
+		}
+
+		public boolean isModifySuccessed(){
+			return mState == STATE_SUCCESS;
 		}
 
 		public String getMediaPath(){
@@ -360,10 +376,13 @@ public class MediaPanel extends JPanel{
 			}
 			int option = fd.showDialog(MainView.getInstance(), mTitle);
 			File file = fd.getSelectedFile();
-			if (option == JFileChooser.APPROVE_OPTION)
-			{
-				mTextView.setText(file.getAbsolutePath());				
-				pref.put("lastPath", file.getPath());
+			if (option == JFileChooser.APPROVE_OPTION){			
+				String path = file.getAbsolutePath();
+				if(path != null && !path.isEmpty()){
+					markState(STATE_MODIFIED);
+					mTextView.setText(path);				
+					pref.put("lastPath", path);
+				}
 			}
 		}
 		
@@ -380,21 +399,39 @@ public class MediaPanel extends JPanel{
 		}
 		
 		public void doModify(){
-			mJLabel.setForeground(ComUtil.COLOR_MARK_UNMODIFIED);
+			//mJLabel.setForeground(ComUtil.COLOR_MARK_UNMODIFIED);
 
 			if(doRealModify()){
-				mTextView.setText("");
-				mJLabel.setForeground(ComUtil.COLOR_MARK_MODIFIED);
+				markState(STATE_SUCCESS);
 			}else{
-				mJLabel.setForeground(ComUtil.COLOR_MARK_FAILED);
+				markState(STATE_FAILED);
 			}
+			
 		}
 
 		public boolean doRealModify(){
 			return true;
 		}
 
+		private void markState(int state){
+			if(mState == state){
+				return;
+			}
+			mState = state;
+			if(mJLabel == null){
+				return;
+			}
+			if(mState == STATE_SUCCESS){
+				mJLabel.setForeground(ComUtil.COLOR_MARK_MODIFIED);
+			}else if(mState == STATE_FAILED){
+				mJLabel.setForeground(ComUtil.COLOR_MARK_FAILED);
+			}else{
+				mJLabel.setForeground(ComUtil.COLOR_MARK_UNMODIFIED);
+			}
+		}
+
 		public void reset(){
+			markState(STATE_IDLE);
 			if(mTextView != null){
 				mTextView.setText("");
 			}

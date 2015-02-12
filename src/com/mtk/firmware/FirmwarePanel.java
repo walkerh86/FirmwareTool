@@ -86,9 +86,11 @@ public class FirmwarePanel extends JPanel implements ActionListener
 
 	public synchronized static FirmwarePanel getInstance()
 	{
-		if (fPanel == null)
-		{
+		if (fPanel == null){		
 			fPanel = new FirmwarePanel();
+			if(ComUtil.DEBUG_MODE){
+				fPanel.setFirmwarePath("E:\\roms\\TY0712B_3G-HD-2_KK_V2.4.1_150130\\software");
+			}
 		}
 		return fPanel;
 	}
@@ -103,8 +105,17 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		rompath = path;
 		firmwarePath.setText(path);
 
-		mSysImgPath = ComUtil.pathConcat(rompath,"system.img");
-		mDataImgPath = ComUtil.pathConcat(rompath,"userdata.img");
+		if(ComUtil.FAST_MODE){
+			mSysImgPath = ComUtil.pathConcat(rompath,"system.img");
+		}else{
+			mSysImgPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"system.img");
+		}
+
+		if(ComUtil.FAST_MODE){
+			mDataImgPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"userdata.img");
+		}else{
+			mDataImgPath = ComUtil.pathConcat(rompath,"userdata.img");
+		}
 	}
 
 	public void setAndroidSize()
@@ -344,31 +355,42 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		}
 	}
 
+	public int getAvailSizeMb(){
+		return allowSize;
+	}
+
 	public String getSystemImgPath(){
 		return mSysImgPath;
 	}
 
 	public String getUserdataImgPath(){
-		//return "E:\\roms\\TY0712B_3G-HD-2_KK_V2.4.1_150130\\software\\userdata.img";
 		return mDataImgPath;
 	}
 
 	public String getLogoBinPath(){
-		//return "E:\\roms\\TY0712B_3G-HD-2_KK_V2.4.1_150130\\software\\logo.bin";
 		return ComUtil.pathConcat(rompath,"logo.bin");
 	}
 
 	public void repackSystem(){
 		BinUtil.rm(mSysImgPath);
 		BinUtil.makeExt4Fs(mSysImgPath, SYSTEM_DIR, mSysImgSizeMb);
+		if(!ComUtil.FAST_MODE){
+			BinUtil.copy(mSysImgPath,ComUtil.pathConcat(rompath,"system.img"));
+		}
 	}
 
 	public void repackUserdata(){
 		BinUtil.rm(mDataImgPath);
 		BinUtil.makeExt4Fs(mDataImgPath, USERDATA_DIR, mDataImgSizeMb);
+		if(!ComUtil.FAST_MODE){
+			BinUtil.copy(mDataImgPath,ComUtil.pathConcat(rompath,"userdata.img"));
+		}
 	}
 
 	public void unpackUserData(){
+		if(!ComUtil.FAST_MODE){
+			BinUtil.copy(ComUtil.pathConcat(rompath,"userdata.img"),mDataImgPath);
+		}
 		BinUtil.simgToImg(getUserdataImgPath(), USERDATA_IMGEXT);
 		BinUtil.mkdir(ComUtil.USERDATA_DIR);
 		BinUtil.ext4(USERDATA_IMGEXT, ComUtil.USERDATA_DIR);
@@ -377,6 +399,9 @@ public class FirmwarePanel extends JPanel implements ActionListener
 	}
 
 	public void unpackSystem(){
+		if(!ComUtil.FAST_MODE){
+			BinUtil.copy(ComUtil.pathConcat(rompath,"system.img"),mSysImgPath);
+		}
 		BinUtil.simgToImg(mSysImgPath, SYSTEM_IMGEXT);
 		BinUtil.mkdir(ComUtil.SYSTEM_DIR);
 		BinUtil.ext4(SYSTEM_IMGEXT,ComUtil.SYSTEM_DIR);

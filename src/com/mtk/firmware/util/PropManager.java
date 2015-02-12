@@ -14,6 +14,9 @@ public class PropManager {
 	public static PropManager getInstance(){
 		if(mPropManager == null){
 			mPropManager = new PropManager();
+			if(ComUtil.DEBUG_MODE){
+				mPropManager.loadProps();
+			}
 		}
 
 		return mPropManager;
@@ -67,6 +70,14 @@ public class PropManager {
 			}
 		}
 		return support;
+	}
+
+	public void clearModified(){
+		for(PropUtil propUtil : mPropUtils){
+			if(propUtil != null && propUtil.isModified()){
+				propUtil.clearModified();
+			}
+		}
 	}
 	
 	public void save(){

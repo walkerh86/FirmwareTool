@@ -51,6 +51,10 @@ public class PropUtil {
 		}
 	}
 
+	public void clearModified(){
+		mPropMapsModified.clear();
+	}
+
 	public void save(){
 		Iterator<Entry<String, String>> iter = mPropMapsModified.entrySet().iterator();
 		while(iter.hasNext()){

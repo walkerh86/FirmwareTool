@@ -77,7 +77,7 @@ public class MainView extends JFrame implements ActionListener
 	public static final int PANEL_MAIN_PADDING = 10;
 	public static final int PANEL_MAIN_ROW_PADDING = 20;
 	
-	private MainView(){	
+	private MainView(){
 		try{		
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		}
@@ -167,14 +167,17 @@ public class MainView extends JFrame implements ActionListener
 		return true;
 	}
 
-	public void updateTabbedPane(boolean bool)
-	{
+	public void updateTabbedPane(boolean bool){
+		if(ComUtil.DEBUG_MODE){
+			return;
+		}
+	
 		tabbedPane.setEnabledAt(0, bool);
 		tabbedPane.setEnabledAt(1, bool);
 		tabbedPane.setEnabledAt(2, bool);
-		infoPanel.setInfoPanelEnable(bool);
-		mediaPanel.setMediaPanelEnable(bool);
-		appPanel.setAppPanelEnable(bool);
+		infoPanel.setEnabled(bool);
+		mediaPanel.setEnabled(bool);
+		appPanel.setEnabled(bool);
 		execButton.setEnabled(bool);
 	}
 
@@ -201,7 +204,7 @@ public class MainView extends JFrame implements ActionListener
 			}
 			else
 			{
-				JOptionPane.showMessageDialog(null, "你要修改什么呢？");
+				JOptionPane.showMessageDialog(null, "没啥好修改的！");
 			}
 		}
 	}
@@ -296,15 +299,24 @@ public class MainView extends JFrame implements ActionListener
 	}
 
 	private boolean isSystemModified(){
-		return infoPanel.isModified() || mediaPanel.isSystemModified() || appPanel.isSystemModified();
+		return infoPanel.isSystemModified() || mediaPanel.isSystemModified() || appPanel.isSystemModified();
 	}
 
 	private boolean isUserdataModified(){
 		return appPanel.isUserdataModified();
 	}
 
+	private void finishModify(){
+		infoPanel.finishModify();
+		mediaPanel.finishModify();
+		appPanel.finishModify();
+
+		execButton.setEnabled(true);
+	}
+
 	private void execCommand(){	
-		try{		
+		try{	
+			Log.i("------------------rom modify begin");
 			infoPanel.doModify();
 			mediaPanel.doModify();
 			checkShutdownProp();
@@ -317,6 +329,9 @@ public class MainView extends JFrame implements ActionListener
 			if (isSystemModified()){			
 				firmwarePanel.repackSystem();
 			}
+
+			finishModify();
+			Log.i("------------------rom modify finished");
 		}catch (Exception e){				
 			e.printStackTrace();
 		}
@@ -330,12 +345,13 @@ public class MainView extends JFrame implements ActionListener
 		return infoPanel.isModifiedValid() && appPanel.isModifiedValid();
 	}
 
-	public static void main(String[] args){	
+	public static void main(String[] args){
 		if (args.length == 1){		
 			if (args[0].equals("tyd")){
 				Log.setEnabled(true);
 			}
 		}
+		//Log.setEnabled(true);
 		SwingUtilities.invokeLater(new Runnable(){		
 			public void run(){			
 				MainView.getInstance();

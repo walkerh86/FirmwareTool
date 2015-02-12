@@ -109,6 +109,11 @@ public class BinUtil {
 		doCmd(cmd);
 	}
 
+	public static String pathWinToPosix(String srcPath){
+		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_CYGPATH,"-u",ComUtil.strWithQuotation(srcPath));
+		return doCmd(cmd);
+	}
+
 	private static String doCmdNoLog(String cmd){
 		StringBuffer sb = null;
 		try {

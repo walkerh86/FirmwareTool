@@ -11,9 +11,12 @@ public class Log {
 	private static FileWriter mLogWriter;
 	private static Date mDate;
 
-	public static void setEnabled(boolean enable){
+	public static void setEnabled(boolean enable){	
+		if(mEnabled == enable){
+			return;
+		}
 		mEnabled = enable;
-		if(mEnabled){
+		if(mEnabled){			
 			try{
 				File logFile = new File(mLogPath);
 				if (logFile.exists()){				
@@ -32,7 +35,7 @@ public class Log {
 	public static void i(String log){
 		if(mEnabled){
 			try{
-				mLogWriter.write(mDate.toLocaleString() + " " + log);
+				mLogWriter.write(mDate.toLocaleString() + " " + log+"\n");
 				mLogWriter.flush();
 			}catch (IOException e){
 				e.printStackTrace();

@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.io.File;
 
 public class ComUtil {
+	public static final boolean DEBUG_MODE = false; //no need to load system.img in this mode
+	public static final boolean FAST_MODE = true; //no need copy system.img
+	
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final String USER_DIR = System.getProperty("user.dir");
 	public static final String OUT_DIR = pathConcat(USER_DIR,"firmware");
@@ -25,6 +28,7 @@ public class ComUtil {
 	public static final String BIN_SIMG2IMG = pathConcat(XBIN,"simg2img.exe");
 	public static final String BIN_EXT4 = pathConcat(XBIN,"ext4.exe");
 	public static final String BIN_MAKE_EXT4FS = pathConcat(XBIN,"make_ext4fs.exe");
+	public static final String BIN_CYGPATH = pathConcat(XBIN,"cygpath","cygpath.exe");
 
 	public static final Color COLOR_MARK_MODIFIED = new Color(0,201,87);
 	public static final Color COLOR_MARK_UNMODIFIED = Color.BLACK;
