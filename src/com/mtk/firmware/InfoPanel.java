@@ -312,7 +312,8 @@ public class InfoPanel extends JPanel{
 		
 		@Override
 		public void setValue(String value){
-			if(value == null || value.equals("null")){
+			if(value == null || value.equals("null") 
+				|| (value.equals("0") && (mKey.equals("ro.ty.storage.fakein") || mKey.equals("ro.ty.storage.fakesd")  || mKey.equals("ro.ty.storage.fakeram")))){
 				value = "";
 			}
 			super.setValue(value);
