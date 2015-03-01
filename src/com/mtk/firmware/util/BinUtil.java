@@ -114,7 +114,7 @@ public class BinUtil {
 		return doCmd(cmd);
 	}
 
-	private static String doCmdNoLog(String cmd){
+	public static String doCmdNoLog(String cmd){
 		StringBuffer sb = null;
 		try {
 			Runtime r=Runtime.getRuntime();
@@ -134,7 +134,7 @@ public class BinUtil {
 		return (sb != null) ? sb.toString() : null;
 	}
 
-	private static String doCmd(String cmd){
+	public static String doCmd(String cmd){
 		Log.i(ComUtil.strConcatSpace("doCmd,cmd =",cmd));
 		return doCmdNoLog(cmd);
 	}

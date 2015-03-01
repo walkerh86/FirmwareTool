@@ -7,9 +7,15 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -133,7 +139,7 @@ public class MediaPanel extends JPanel{
 			modified = item.isModifySuccessed();
 			if(modified){
 				String key = entry.getKey();
-				if(key.equals(KEY_LOGO_UBOOT) || key.equals(KEY_LOGO_UBOOT2) ||
+				if(key.equals(KEY_LOGO_UBOOT) || key.equals(KEY_LOGO_UBOOT2) || key.equals(KEY_FAT_IMAGE) ||
 					((key.equals(KEY_LOGO_KERNEL) || key.equals(KEY_LOGO_KERNEL2)) && isAndroidVerkk)){
 					modified = false;
 					continue;
@@ -277,12 +283,14 @@ public class MediaPanel extends JPanel{
 	private static final String KEY_BOOT_AUDIO2 = "bootaudio2";
 	private static final String KEY_SHUT_ANIM2 = "shutanim2";
 	private static final String KEY_SHUT_AUDIO2 = "shutaudio2";
+	private static final String KEY_FAT_IMAGE = "fat";
 
 	private static final int PROP_ITEM_COLS = 25;
 	private static final int PROP_ITEM_LABEL_COLS = 6;
 	private void initMediaItemViews(){
 		FileFilter logoFileFilter = new GenericFileFilter(new String[]{ "jpg", "jpeg", "png", "gif", "bmp" }, "Images Files(*.jpg;*.jpeg;*.png;*.gif;*.bmp)");
 		FileFilter audioFileFilter = new GenericFileFilter(new String[]{ "mp3" }, "*.mp3");
+		FileFilter imageFileFilter = new GenericFileFilter(new String[]{ "img" }, "*.img");
 		mMediaItemViews.put(KEY_LOGO_UBOOT,new LogoItemView("第一屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_UBOOT,MainView.getBounds(0, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_LOGO_KERNEL,new LogoItemView("第二屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_KERNEL,MainView.getBounds(0, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_BOOT_ANIM,new AnimItemView("开机动画目录",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","bootanimation",MainView.getBounds(2, 0, 1, PROP_ITEM_COLS*2+1)));
@@ -300,6 +308,7 @@ public class MediaPanel extends JPanel{
 		mMediaItemViews.put(KEY_SHUT_ANIM2,new AnimItemView("隐藏关机动画",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","shutanimation2",MainView.getBounds(8, 0, 1, PROP_ITEM_COLS*2+1)));
 		mMediaItemViews.put("dummy_shutanim2",new DummyItemView("开机动画目录",0,null,null,null));
 		mMediaItemViews.put(KEY_SHUT_AUDIO2,new AudioItemView("隐藏关机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件","shutaudio2.mp3",MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mMediaItemViews.put(KEY_FAT_IMAGE,new FatItemView("fat_sparse.img",JFileChooser.FILES_ONLY, imageFileFilter, "选择image文件",MainView.getBounds(9, 0, 1, PROP_ITEM_COLS*2+1),FirmwarePanel.getInstance().getRomPath()));
 
 		Iterator<Map.Entry<String,MediaItemView>> iter = mMediaItemViews.entrySet().iterator();
 		while(iter.hasNext()){
@@ -665,6 +674,82 @@ public class MediaPanel extends JPanel{
 				ComUtil.pathConcat("res","drawable-sw480dp-nodpi"),updateFile);
 			updateApkWallpaper(wallpaperpath,tmpPath,launcherPath,
 				ComUtil.pathConcat("res","drawable-sw600dp-nodpi"),updateFile);
+		}
+	}
+
+	private class FatItemView extends MediaItemView{
+		private String mRomPath;
+		private static final String FAT_IMG_NAME = "fat_sparse.img";
+		
+		public FatItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect) {
+			super(label, selMode, filter, title, rect);
+		}
+
+		public FatItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect, String romPath) {
+			super(label, selMode, filter, title, rect);
+			mRomPath = romPath;
+		}
+
+		@Override
+		public boolean doRealModify() {
+			boolean success = false;
+			BinUtil.copy(getMediaPath(), ComUtil.pathConcat(mRomPath,FAT_IMG_NAME));
+			String tmpScatFilePath = ComUtil.pathConcat(ComUtil.OUT_DIR,"scatter_src.txt");
+			String outScatFilePath = ComUtil.pathConcat(ComUtil.OUT_DIR,"scatter_out.txt");
+			String scatterFilePath = getScatterPath(mRomPath);
+			BinUtil.copy(scatterFilePath,tmpScatFilePath);
+			try{
+				File out = new File(outScatFilePath);
+				BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(out));
+				
+				File in = new File(tmpScatFilePath);
+				BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(in)));
+				boolean fat_begin = false;
+				String read;
+				while ((read = br.readLine()) != null){
+					if(!fat_begin){
+						if ((read.indexOf("FAT")) != -1){					
+							fat_begin = true;
+						}
+					}else{					
+						if((read.indexOf("file_name")) != -1){
+							read = read.replace("NONE","fat_sparse.img");
+						}else if((read.indexOf("is_download")) != -1){
+							read = read.replace("false","true");
+							fat_begin = false;
+						}
+					}
+					fos.write(read.getBytes());
+					fos.write("\n".getBytes());
+				}
+				fos.flush();
+				fos.close();
+				br.close();
+
+				BinUtil.copy(outScatFilePath,scatterFilePath);
+				success = true;
+			}catch (FileNotFoundException e){
+				Log.i(e.toString());
+			}catch (IOException e){
+				Log.i(e.toString());
+			}
+			BinUtil.rm(tmpScatFilePath);
+			BinUtil.rm(outScatFilePath);
+			return success;
+		}
+
+		public String getScatterPath(String romPath){
+			String scatterFilePath = null;
+			
+			File romPathFile = new File(romPath);
+			String[] romFiles = romPathFile.list();
+			for(String romFile : romFiles){
+				if(romFile.endsWith("Android_scatter.txt")){
+					scatterFilePath = romFile;
+					break;
+				}
+			}
+			return ComUtil.pathConcat(romPath,scatterFilePath);
 		}
 	}
 

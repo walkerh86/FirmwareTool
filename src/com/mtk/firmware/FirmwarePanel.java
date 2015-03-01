@@ -76,7 +76,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		firmwarePath.setFocusable(false);
 		selectButton = new JButton("浏览..");
 		selectButton.addActionListener(this);
-		JLabel jl = new JLabel("固件目录(请先备份！)");
+		JLabel jl = new JLabel("固件目录");
 		jl.setToolTipText("请选择要修改的固件目录，此处只能选择目录");
 		firmwarePath.setToolTipText("请选择要修改的固件目录，此处只能选择目录");
 		add(jl);
@@ -369,6 +369,10 @@ public class FirmwarePanel extends JPanel implements ActionListener
 
 	public String getLogoBinPath(){
 		return ComUtil.pathConcat(rompath,"logo.bin");
+	}
+
+	public String getRomPath(){
+		return rompath;
 	}
 
 	public void repackSystem(){

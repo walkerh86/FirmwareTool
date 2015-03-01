@@ -119,7 +119,7 @@ public class MainView extends JFrame implements ActionListener
 		appPanel = AppPanel.getInstance();
 
 		tabbedPane.addTab("基  本 信 息", infoPanel);
-		tabbedPane.addTab("图  片 与  铃 声", mediaPanel);
+		tabbedPane.addTab("图片铃声视频", mediaPanel);
 		tabbedPane.addTab("内 置 APK", appPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
