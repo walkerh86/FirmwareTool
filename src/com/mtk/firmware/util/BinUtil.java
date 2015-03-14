@@ -3,6 +3,12 @@ package com.mtk.firmware.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.Console;  
+import java.io.PrintWriter;  
+import java.io.OutputStream;
 
 public class BinUtil {
 	public static void zipUpdateApk(String cdDir, String apkPath, String updatePath){
@@ -26,7 +32,7 @@ public class BinUtil {
 
 	public static void unzipExtractNoLog(String zipFile, String extractPath, String dstDir){
 		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_UNZIP,"-o",ComUtil.strWithQuotation(zipFile),ComUtil.strWithQuotation(extractPath),"-d",ComUtil.strWithQuotation(dstDir));
-		doCmdNoLog(cmd);
+		doCmd(cmd,false,false);
 	}
 
 	public static void convertImage(String src, String dst){
@@ -52,7 +58,7 @@ public class BinUtil {
 	public static Size IdentifyImageSize(String imgPath){
 		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_IDENTIFY,"-format %wx%h",ComUtil.strWithQuotation(imgPath));
 		Size size = new Size(-1,-1);
-		String sizeStr = doCmd(cmd);
+		String sizeStr = doCmd(cmd, true, true);
 		if(sizeStr != null) {
 			String[] sizeStrs = sizeStr.split("x");
 			
@@ -94,6 +100,55 @@ public class BinUtil {
 		doCmd(cmd);
 	}
 
+	public static void checksumGen(String dstPath){
+		final String DST_BIN = ComUtil.pathConcat(dstPath,"checksum.exe");
+		copy(ComUtil.BIN_CHECKSUM,DST_BIN);
+		String cmd = ComUtil.strConcatSpace(DST_BIN,dstPath);
+
+		Log.i(ComUtil.strConcatSpace("doCmd,cmd =",cmd));
+
+		try {
+			Runtime r=Runtime.getRuntime();
+			final Process p=r.exec(cmd); 
+		
+			new Thread(new Runnable(){
+				@Override
+				public void run(){
+					try{
+						BufferedReader inBr=new BufferedReader(new InputStreamReader(p.getInputStream()));
+						StringBuffer sbResult = new StringBuffer();
+						String inline;
+						while(null!=(inline=inBr.readLine())){ 
+							sbResult.append(inline);
+							if(inline.contains("Press any key to continue")){
+								p.destroy();
+							}
+							Log.i(inline);
+						}
+						inBr.close();
+					}catch (Exception e) {
+						
+					}
+				}
+			}).start();
+			
+			BufferedReader errBr=new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			StringBuffer errSb=new StringBuffer();
+			String inline;
+			while(null!=(inline=errBr.readLine())){ 
+				errSb.append(inline);
+				Log.i("err line:"+inline);
+			}
+			errBr.close();
+
+			p.waitFor();
+
+			BinUtil.rm(DST_BIN);
+		}catch (Exception e) {
+			Log.i("doCmd, e="+e.toString()); 
+		}
+	}
+
 	public static void mkdir(String path){
 		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_MKDIR,"-p",ComUtil.strWithQuotation(path));
 		doCmd(cmd);
@@ -109,34 +164,53 @@ public class BinUtil {
 		doCmd(cmd);
 	}
 
-	public static String pathWinToPosix(String srcPath){
-		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_CYGPATH,"-u",ComUtil.strWithQuotation(srcPath));
-		return doCmd(cmd);
-	}
-
-	public static String doCmdNoLog(String cmd){
-		StringBuffer sb = null;
+	public static String doCmd(String cmd, boolean logEnable, boolean getOut){
+		if(logEnable){
+			Log.i(ComUtil.strConcatSpace("doCmd,cmd =",cmd));
+		}
+		StringBuffer sbResult = null;
 		try {
 			Runtime r=Runtime.getRuntime();
-			Process p=r.exec(cmd); 
-			BufferedReader br=new BufferedReader(new InputStreamReader(p.getInputStream()));
-			sb=new StringBuffer();
+			final Process p=r.exec(cmd); 
+
+			new Thread(new Runnable(){
+				@Override
+				public void run(){
+					try{
+						BufferedReader inBr=new BufferedReader(new InputStreamReader(p.getInputStream()));
+						StringBuffer sbResult = new StringBuffer();
+						String inline;
+						while(null!=(inline=inBr.readLine())){ 
+							sbResult.append(inline);
+						}
+						inBr.close();
+					}catch (Exception e) {
+						
+					}
+				}
+			}).start();
+
+			BufferedReader errBr=new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			StringBuffer errSb=new StringBuffer();
 			String inline;
-			while(null!=(inline=br.readLine())){ 
-				sb.append(inline);
+			while(null!=(inline=errBr.readLine())){ 
+				errSb.append(inline);
 			}
-			p.waitFor();
-			br.close();
+			errBr.close();
+			
+			int result = p.waitFor();
+			if(logEnable && result != 0){
+				Log.i("doCmd,result="+errSb.toString());
+			}
 		}catch (Exception e) {
-			e.printStackTrace(); 
+			Log.i("doCmd, e="+e.toString()); 
 		}
 
-		return (sb != null) ? sb.toString() : null;
+		return (sbResult != null) ? sbResult.toString() : null;
 	}
 
-	public static String doCmd(String cmd){
-		Log.i(ComUtil.strConcatSpace("doCmd,cmd =",cmd));
-		return doCmdNoLog(cmd);
+	public static void doCmd(String cmd){
+		doCmd(cmd,true,false);
 	}
 
 	public static class Size{

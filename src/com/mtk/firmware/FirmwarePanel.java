@@ -89,7 +89,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		if (fPanel == null){		
 			fPanel = new FirmwarePanel();
 			if(ComUtil.DEBUG_MODE){
-				fPanel.setFirmwarePath("E:\\roms\\TY0712B_3G-HD-2_KK_V2.4.1_150130\\software");
+				fPanel.setFirmwarePath("E:\\roms\\TY0701_3G-HD-2_V2.3.5_150121\\software");
 			}
 		}
 		return fPanel;
@@ -112,9 +112,9 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		}
 
 		if(ComUtil.FAST_MODE){
-			mDataImgPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"userdata.img");
-		}else{
 			mDataImgPath = ComUtil.pathConcat(rompath,"userdata.img");
+		}else{
+			mDataImgPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"userdata.img");
 		}
 	}
 
@@ -411,5 +411,9 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		BinUtil.ext4(SYSTEM_IMGEXT,ComUtil.SYSTEM_DIR);
 		mSysImgSizeMb = (int)FileUtil.getFileSizes(SYSTEM_IMGEXT) / 1024 / 1024;
 		BinUtil.rm(SYSTEM_IMGEXT);
+	}
+
+	public void checksumGen(){
+		BinUtil.checksumGen(rompath);
 	}
 }

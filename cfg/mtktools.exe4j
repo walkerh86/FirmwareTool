@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <exe4j version="4.5.2" transformSequenceNumber="1">
-  <directoryPresets config="E:/project/Firmware/cfg" />
-  <application name="TyFirmwareTools" distributionSourceDir="E:/project/Firmware/out">
+  <directoryPresets config="E:/project/Firmware/out" />
+  <application name="TyFirmwareTools" distributionSourceDir="E:/project/Firmware/cfg">
     <languages>
       <principalLanguage id="en" customLocalizationFile="" />
     </languages>
@@ -21,7 +21,7 @@
       <directory location="./jre" />
     </searchSequence>
     <classPath>
-      <archive location="./mtktools.jar" failOnError="false" />
+      <archive location="../out/mtktools.jar" failOnError="false" />
     </classPath>
     <nativeLibraryDirectories />
   </java>

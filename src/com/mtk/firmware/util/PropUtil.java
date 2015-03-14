@@ -75,10 +75,11 @@ public class PropUtil {
 					continue;
 				}
 				String[] splitStr = trimStr.split("=");
-				if(splitStr.length != 2){
-					continue;
+				if(splitStr.length == 2){
+					mPropMaps.put(splitStr[0].trim(), splitStr[1].trim());
+				}else{
+					mPropMaps.put(splitStr[0].trim(), "");
 				}
-				mPropMaps.put(splitStr[0].trim(), splitStr[1].trim());
 			}
 			br.close();
 		}catch (FileNotFoundException e){		

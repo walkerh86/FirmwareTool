@@ -29,6 +29,7 @@ public class ComUtil {
 	public static final String BIN_EXT4 = pathConcat(XBIN,"ext4.exe");
 	public static final String BIN_MAKE_EXT4FS = pathConcat(XBIN,"make_ext4fs.exe");
 	public static final String BIN_CYGPATH = pathConcat(XBIN,"cygpath","cygpath.exe");
+	public static final String BIN_CHECKSUM = pathConcat(XBIN,"CheckSum_Gen.exe");
 
 	public static final Color COLOR_MARK_MODIFIED = new Color(0,201,87);
 	public static final Color COLOR_MARK_UNMODIFIED = Color.BLACK;

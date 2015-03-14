@@ -316,7 +316,7 @@ public class MainView extends JFrame implements ActionListener
 
 	private void execCommand(){	
 		try{	
-			Log.i("------------------rom modify begin");
+			Log.i("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<rom modify begin");
 			infoPanel.doModify();
 			mediaPanel.doModify();
 			checkShutdownProp();
@@ -330,8 +330,10 @@ public class MainView extends JFrame implements ActionListener
 				firmwarePanel.repackSystem();
 			}
 
+			firmwarePanel.checksumGen();
+
 			finishModify();
-			Log.i("------------------rom modify finished");
+			Log.i(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>rom modify finished");
 		}catch (Exception e){				
 			e.printStackTrace();
 		}

@@ -44,6 +44,7 @@ public class MediaPanel extends JPanel{
 	private static final long	serialVersionUID	= 1L;
 	private static MediaPanel mPanel;
 	public static Preferences pref;
+	private String mRomPath;
 
 	private MediaPanel()
 	{
@@ -109,6 +110,8 @@ public class MediaPanel extends JPanel{
 			MediaItemView item = (MediaItemView)entry.getValue();
 			item.reset();
 		}
+
+		mRomPath = FirmwarePanel.getInstance().getRomPath();
 	}
 
 	private boolean isAndroidVerKK(){
@@ -183,6 +186,7 @@ public class MediaPanel extends JPanel{
 	}
 
 	private int getLogoSizeAndRotate(String imgFile, BinUtil.Size size){
+		Log.i("getLogoSizeAndRotate,imgFile="+imgFile);
 		int degree = 0;
 		try{
 			Image pic = javax.imageio.ImageIO.read(new File(imgFile));
@@ -197,7 +201,7 @@ public class MediaPanel extends JPanel{
 				size.height = Math.min(width,height);
 			}
 		}catch (IOException e){
-			e.printStackTrace();
+			Log.i(e.toString());
 		}
 		return degree;
 	}
@@ -230,6 +234,7 @@ public class MediaPanel extends JPanel{
 			String path = entry.getValue();
 			String dstBmp = ComUtil.pathConcat(tmpPath,name+".bmp");
 			convertLogo(path,dstBmp);
+			Log.i("modify logo, path="+path+",dstBmp="+dstBmp);
 			int index = 0;
 			if(name.equals(KEY_LOGO_UBOOT)){
 				index = 0; 
@@ -294,19 +299,15 @@ public class MediaPanel extends JPanel{
 		mMediaItemViews.put(KEY_LOGO_UBOOT,new LogoItemView("第一屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_UBOOT,MainView.getBounds(0, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_LOGO_KERNEL,new LogoItemView("第二屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_KERNEL,MainView.getBounds(0, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_BOOT_ANIM,new AnimItemView("开机动画目录",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","bootanimation",MainView.getBounds(2, 0, 1, PROP_ITEM_COLS*2+1)));
-		mMediaItemViews.put("dummy_bootanim",new DummyItemView("开机动画目录",0,null,null,null));
 		mMediaItemViews.put(KEY_BOOT_AUDIO,new AudioItemView("开机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件", "bootaudio.mp3",MainView.getBounds(1, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_SHUT_ANIM,new AnimItemView("关机动画目录",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","shutanimation",MainView.getBounds(3, 0, 1, PROP_ITEM_COLS*2+1)));
-		mMediaItemViews.put("dummy_shutanim",new DummyItemView("开机动画目录",0,null,null,null));
 		mMediaItemViews.put(KEY_SHUT_AUDIO,new AudioItemView("关机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件", "shutaudio.mp3",MainView.getBounds(1, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_WALLPAPER,new WallpaperItemView("默认壁纸",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",MainView.getBounds(4, 0, 1, PROP_ITEM_COLS*2+1)));
 		mMediaItemViews.put(KEY_LOGO_UBOOT2,new LogoItemView("隐藏第一屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_UBOOT2,MainView.getBounds(5, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_LOGO_KERNEL2,new LogoItemView("隐藏第二屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_KERNEL2,MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_BOOT_ANIM2,new AnimItemView("隐藏开机动画",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","bootanimation2",MainView.getBounds(7, 0, 1, PROP_ITEM_COLS*2+1)));
-		mMediaItemViews.put("dummy_bootanim2",new DummyItemView("开机动画目录",0,null,null,null));
 		mMediaItemViews.put(KEY_BOOT_AUDIO2,new AudioItemView("隐藏开机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件","bootaudio2.mp3",MainView.getBounds(6, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_SHUT_ANIM2,new AnimItemView("隐藏关机动画",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","shutanimation2",MainView.getBounds(8, 0, 1, PROP_ITEM_COLS*2+1)));
-		mMediaItemViews.put("dummy_shutanim2",new DummyItemView("开机动画目录",0,null,null,null));
 		mMediaItemViews.put(KEY_SHUT_AUDIO2,new AudioItemView("隐藏关机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件","shutaudio2.mp3",MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_FAT_IMAGE,new FatItemView("fat_sparse.img",JFileChooser.FILES_ONLY, imageFileFilter, "选择image文件",MainView.getBounds(9, 0, 1, PROP_ITEM_COLS*2+1),FirmwarePanel.getInstance().getRomPath()));
 
@@ -554,17 +555,27 @@ public class MediaPanel extends JPanel{
 			}
 			String animPath = getMediaPath();
 			String[] srcFiles = new File(animPath).list();
-			BinUtil.Size logoSize = new BinUtil.Size(-1,-1);
-			int rotateDegree = getLogoSizeAndRotate(ComUtil.pathConcat(animPath,srcFiles[0]), logoSize);
+			String tmpSrcPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"anim","tmp_src");
+			ComUtil.mkTempDir(tmpSrcPath);
 			int index = 0;
 			DecimalFormat dig = new DecimalFormat("000");
+			for(String animFile : srcFiles){
+				String suffix = animFile.substring(animFile.lastIndexOf(".")+1, animFile.length());
+				BinUtil.copy(ComUtil.pathConcat(animPath,animFile), ComUtil.pathConcat(tmpSrcPath,ComUtil.strConcatWith(".",dig.format(index++),suffix)));
+			}
+			srcFiles = new File(tmpSrcPath).list();
+			if(srcFiles.length == 0) return false;
+			
+			BinUtil.Size logoSize = new BinUtil.Size(-1,-1);
+			int rotateDegree = getLogoSizeAndRotate(ComUtil.pathConcat(tmpSrcPath,srcFiles[0]), logoSize);
+			index = 0;
 			for(String srcFile : srcFiles){
-				String srcPath = ComUtil.pathConcat(animPath,srcFile);
+				String srcPath = ComUtil.pathConcat(tmpSrcPath,srcFile);
 				String dstFile = ComUtil.pathConcat(ComUtil.pathConcat(tmpPath,"part0"),ComUtil.strConcatWith(".",dig.format(index++),"png"));
 				convertLogo(srcPath, dstFile, rotateDegree);
 			}
 			if(!loop){
-				String srcPath = ComUtil.pathConcat(animPath,srcFiles[srcFiles.length-1]);
+				String srcPath = ComUtil.pathConcat(tmpSrcPath,srcFiles[srcFiles.length-1]);
 				String dstFile = ComUtil.pathConcat(ComUtil.pathConcat(tmpPath,"part1"),ComUtil.strConcatWith(".",dig.format(index++),"png"));
 				convertLogo(srcPath, dstFile, rotateDegree);
 			}
@@ -580,7 +591,7 @@ public class MediaPanel extends JPanel{
 				}
 				writer.close();
 			}catch (IOException e){
-				e.printStackTrace();
+				Log.i(e.toString());
 			}
 			BinUtil.zipCompress(tmpPath, mDstAnim, "-r -0");
 			String zipFile = ComUtil.strConcat(mDstAnim,".zip");
@@ -678,7 +689,7 @@ public class MediaPanel extends JPanel{
 	}
 
 	private class FatItemView extends MediaItemView{
-		private String mRomPath;
+		//private String mRomPath;
 		private static final String FAT_IMG_NAME = "fat_sparse.img";
 		
 		public FatItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect) {

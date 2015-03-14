@@ -380,6 +380,7 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 		
 		mAvailSizeMb -= mPackedSizeMb;
 		mAvailSizeLabel.setText(mAvailSizeMb+"M");
+		setDynamicSize(0);
 	}
 
 	public void setEnabled(boolean bool){
