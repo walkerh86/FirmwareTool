@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.io.File;
 
 public class ComUtil {
-	public static final boolean DEBUG_MODE = false; //no need to load system.img in this mode
+	public static final boolean DEBUG_MODE = true; //no need to load system.img in this mode
 	public static final boolean FAST_MODE = true; //no need copy system.img
 	
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
@@ -88,5 +88,9 @@ public class ComUtil {
 			BinUtil.rm(path);
 		}
 		BinUtil.mkdir(path);
+	}
+
+	public static boolean strIsEmpty(String str){
+		return str == null || str.length() == 0;
 	}
 }

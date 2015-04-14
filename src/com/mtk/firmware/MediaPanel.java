@@ -185,25 +185,38 @@ public class MediaPanel extends JPanel{
 		return new File(hideAnimPath).exists();
 	}
 
-	private int getLogoSizeAndRotate(String imgFile, BinUtil.Size size){
-		Log.i("getLogoSizeAndRotate,imgFile="+imgFile);
+	private int getBootImgSizeAndRotate(String imgFile, BinUtil.Size size, boolean port){
+		Log.i("getBootImgSizeAndRotate,imgFile="+imgFile);
 		int degree = 0;
 		try{
 			Image pic = javax.imageio.ImageIO.read(new File(imgFile));
 			int width = pic.getWidth(null);
 			int height = pic.getHeight(null);
 			//System.out.print("width="+size.width+",height="+size.height);
-			if(width != -1 && height != -1 && width < height){
-				degree = -90;
-			}
-			if(size != null){
-				size.width = Math.max(width,height);
-				size.height = Math.min(width,height);
+			if(width != -1 && height != -1){
+				if(!port && (width < height)){
+					degree = -90;
+				}else if(port && (width > height)){
+					degree = 90;
+				}
+
+				if(size != null){
+					size.width = port ? Math.min(width,height) : Math.max(width,height);
+					size.height = port ? Math.max(width,height) : Math.min(width,height);
+				}
 			}
 		}catch (IOException e){
 			Log.i(e.toString());
 		}
 		return degree;
+	}
+
+	private int getLogoSizeAndRotate(String imgFile, BinUtil.Size size){
+		return getBootImgSizeAndRotate(imgFile,size,PropManager.getInstance().isLogoDispPort());
+	}
+	
+	private int getAnimSizeAndRotate(String imgFile, BinUtil.Size size){
+		return getBootImgSizeAndRotate(imgFile,size,PropManager.getInstance().isDispPort());
 	}
 	
 	private void convertLogo(String srcFile, String dstFile, int degree){
@@ -233,7 +246,8 @@ public class MediaPanel extends JPanel{
 			String name = entry.getKey();
 			String path = entry.getValue();
 			String dstBmp = ComUtil.pathConcat(tmpPath,name+".bmp");
-			convertLogo(path,dstBmp);
+			int degree = getLogoSizeAndRotate(path,null);
+			convertLogo(path,dstBmp,degree);
 			Log.i("modify logo, path="+path+",dstBmp="+dstBmp);
 			int index = 0;
 			if(name.equals(KEY_LOGO_UBOOT)){
@@ -282,6 +296,7 @@ public class MediaPanel extends JPanel{
 	private static final String KEY_SHUT_ANIM = "shutanim";
 	private static final String KEY_SHUT_AUDIO = "shutaudio";
 	private static final String KEY_WALLPAPER = "wallpaper";
+	private static final String KEY_CANDIDATE_WALLPAPER = "candidate_wallpaper";
 	private static final String KEY_LOGO_UBOOT2 = "uboot2";
 	private static final String KEY_LOGO_KERNEL2 = "kernel2";
 	private static final String KEY_BOOT_ANIM2 = "bootanim2";
@@ -302,7 +317,10 @@ public class MediaPanel extends JPanel{
 		mMediaItemViews.put(KEY_BOOT_AUDIO,new AudioItemView("开机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件", "bootaudio.mp3",MainView.getBounds(1, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_SHUT_ANIM,new AnimItemView("关机动画目录",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","shutanimation",MainView.getBounds(3, 0, 1, PROP_ITEM_COLS*2+1)));
 		mMediaItemViews.put(KEY_SHUT_AUDIO,new AudioItemView("关机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件", "shutaudio.mp3",MainView.getBounds(1, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mMediaItemViews.put(KEY_WALLPAPER,new WallpaperItemView("默认壁纸",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",MainView.getBounds(4, 0, 1, PROP_ITEM_COLS*2+1)));
+		mMediaItemViews.put(KEY_WALLPAPER,new WallpaperGroupView(KEY_WALLPAPER,
+			new MediaItemView("默认壁纸",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",MainView.getBounds(4, 0, 1, PROP_ITEM_COLS)),
+			new MediaItemView("候选壁纸",JFileChooser.DIRECTORIES_ONLY, null, "选择壁纸目录",MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS))
+		));
 		mMediaItemViews.put(KEY_LOGO_UBOOT2,new LogoItemView("隐藏第一屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_UBOOT2,MainView.getBounds(5, 0, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_LOGO_KERNEL2,new LogoItemView("隐藏第二屏LOGO",JFileChooser.FILES_ONLY, logoFileFilter, "选择图片",KEY_LOGO_KERNEL2,MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mMediaItemViews.put(KEY_BOOT_ANIM2,new AnimItemView("隐藏开机动画",JFileChooser.DIRECTORIES_ONLY, null, "选择动画目录","bootanimation2",MainView.getBounds(7, 0, 1, PROP_ITEM_COLS*2+1)));
@@ -319,7 +337,7 @@ public class MediaPanel extends JPanel{
 		}
 	}
 	
-	private abstract class MediaItemView implements ActionListener{
+	private class MediaItemView implements ActionListener{
 		protected String mLabel;
 		private int mSelMode;
 		private FileFilter mFileFilter;
@@ -329,10 +347,10 @@ public class MediaPanel extends JPanel{
 		protected JButton mBrowse;
 		protected Rectangle mRect;
 		private int mState;
-		private static final int STATE_IDLE = 0;
-		private static final int STATE_MODIFIED = 1;
-		private static final int STATE_SUCCESS = 2;
-		private static final int STATE_FAILED = 3;
+		protected static final int STATE_IDLE = 0;
+		protected static final int STATE_MODIFIED = 1;
+		protected static final int STATE_SUCCESS = 2;
+		protected static final int STATE_FAILED = 3;
 		
 		public MediaItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect){
 			mLabel = label;
@@ -416,14 +434,13 @@ public class MediaPanel extends JPanel{
 			}else{
 				markState(STATE_FAILED);
 			}
-			
 		}
 
 		public boolean doRealModify(){
 			return true;
 		}
 
-		private void markState(int state){
+		protected void markState(int state){
 			if(mState == state){
 				return;
 			}
@@ -447,6 +464,56 @@ public class MediaPanel extends JPanel{
 			}
 			if(mJLabel != null){
 				mJLabel.setForeground(ComUtil.COLOR_MARK_UNMODIFIED);
+			}
+		}
+	}
+
+	private class MediaGroupView extends MediaItemView{
+		MediaItemView[] mItems;
+		public MediaGroupView(String label,MediaItemView[] items){
+			super(label,0,null,null,null);
+			mItems = items;
+		}
+
+		public boolean isModified(){
+			for(int i=0;i<mItems.length;i++){
+				if(mItems[i].isModified()){
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public boolean isModifySuccessed(){
+			for(int i=0;i<mItems.length;i++){
+				if(mItems[i].isModifySuccessed()){
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public void addView(JPanel panel, int x, int y){
+			for(int i=0;i<mItems.length;i++){
+				mItems[i].addView(panel,x,y);
+			}
+		}
+
+		public void setEnabled(boolean enable){
+			for(int i=0;i<mItems.length;i++){
+				mItems[i].setEnabled(enable);
+			}
+		}
+
+		public void doModify(){
+			for(int i=0;i<mItems.length;i++){
+				mItems[i].doModify();
+			}
+		}
+
+		public void reset(){
+			for(int i=0;i<mItems.length;i++){
+				mItems[i].reset();
 			}
 		}
 	}
@@ -567,7 +634,7 @@ public class MediaPanel extends JPanel{
 			if(srcFiles.length == 0) return false;
 			
 			BinUtil.Size logoSize = new BinUtil.Size(-1,-1);
-			int rotateDegree = getLogoSizeAndRotate(ComUtil.pathConcat(tmpSrcPath,srcFiles[0]), logoSize);
+			int rotateDegree = getAnimSizeAndRotate(ComUtil.pathConcat(tmpSrcPath,srcFiles[0]), logoSize);
 			index = 0;
 			for(String srcFile : srcFiles){
 				String srcPath = ComUtil.pathConcat(tmpSrcPath,srcFile);
@@ -622,47 +689,106 @@ public class MediaPanel extends JPanel{
 		}
 	}
 
-	private class WallpaperItemView extends MediaItemView{
-		public WallpaperItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect) {
-			super(label, selMode, filter, title, rect);
+	private class WallpaperGroupView extends MediaGroupView{
+		private MediaItemView mDefaultItem;
+		private MediaItemView mCandidateItem;
+		private DecimalFormat mDF = new DecimalFormat("00");
+		private static final int DEFAULT_WALLPAPER_IDX = 1;
+		private static final int CANDIDATE_WALLPAPER_START_IDX = 2;
+		private final String[] LAUCNHER_DRAWABLES = new String[]{"drawable-sw400dp-nodpi","drawable-sw480dp-nodpi","drawable-sw600dp-nodpi"};
+		private final String[] FRAMEWORK_DRAWABLES = new String[]{"drawable-nodpi","drawable-sw600dp-nodpi"};
+		private static final String SMALL_SIZE = "x189";
+		private static final int MAX_WALLPAPERS = 13;
+		
+		public WallpaperGroupView(String label,MediaItemView defItem, MediaItemView candidateItem){
+			super(label,new MediaItemView[]{defItem,candidateItem});
+			mDefaultItem = defItem;
+			mCandidateItem = candidateItem;
 		}
 
-		@Override
-		public boolean doRealModify() {
+		public void doModify(){
+			Log.i("<<<<<<<<<<<<<<<<<<<<<<<<<<modify wallpaper begin");
 			String tmpDir = ComUtil.pathConcat(ComUtil.OUT_DIR,"wallpaper");
-			BinUtil.mkdir(tmpDir);
-			String tmpWallpaperPath = ComUtil.pathConcat(tmpDir,"wallpaper.jpg");
-			BinUtil.convertImage(getMediaPath(), tmpWallpaperPath);
-			updateFrameworkWallpaper(tmpWallpaperPath);
-			updateLauncherWallpaper(tmpWallpaperPath,"wallpaper_01.jpg");
-			String tmpWallpaperSmallPath = ComUtil.pathConcat(tmpDir,"wallpaper_small.jpg");
-			BinUtil.copy(tmpWallpaperPath, tmpWallpaperSmallPath);
-			BinUtil.resizeImage(tmpWallpaperSmallPath, "x189");
-			updateLauncherWallpaper(tmpWallpaperSmallPath,"wallpaper_01_small.jpg");
+			ComUtil.mkTempDir(tmpDir);
+			String srcTmpDir = ComUtil.pathConcat(tmpDir,"src_tmp");
+			BinUtil.mkdir(srcTmpDir);
+			
+			String srcDefPath = mDefaultItem.getMediaPath();
+			String srcCandidatePath = mCandidateItem.getMediaPath();
+			boolean isDefaultModified = mDefaultItem.isModified() && !ComUtil.strIsEmpty(srcDefPath);
+			boolean isCandidateModified = mCandidateItem.isModified() && !ComUtil.strIsEmpty(srcCandidatePath);
+			String srcTmpDefPath = null;
+			int wallpaperCount = 0;
+			if(isDefaultModified){
+				String dstPath = ComUtil.pathConcat(srcTmpDir,getWallpaperName(DEFAULT_WALLPAPER_IDX,false));
+				BinUtil.convertImage(srcDefPath, dstPath);
+				BinUtil.resizeImage(dstPath,ComUtil.pathConcat(srcTmpDir,getWallpaperName(DEFAULT_WALLPAPER_IDX,true)), SMALL_SIZE);
+				srcTmpDefPath = dstPath;
+				wallpaperCount++;
 
-			return true;
+				//update framework imediately
+				StringBuilder sb = new StringBuilder();
+				String defName = "default_wallpaper.jpg";
+				String frameworkTmpDir = ComUtil.pathConcat(tmpDir,"framework");
+				for(String drawable : FRAMEWORK_DRAWABLES){
+					String dstDir = ComUtil.pathConcat(frameworkTmpDir,"res",drawable);
+					BinUtil.mkdir(dstDir);
+					BinUtil.copy(srcTmpDefPath,ComUtil.pathConcat(dstDir,defName));
+					sb.append(" ");
+					sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawable,defName)));
+				}
+				BinUtil.zipUpdateApk(frameworkTmpDir, ComUtil.FRAMEWORK_RES, sb.toString());
+			}
+
+			String launcherPath = getLauncherApkPath();
+			if(launcherPath == null){
+				if(isDefaultModified){
+					mDefaultItem.markState(STATE_SUCCESS);
+				}
+				return;
+			}
+			
+			if(isCandidateModified){
+				String[] srcFiles = new File(srcCandidatePath).list();
+				int maxCount = Math.min(srcFiles.length,MAX_WALLPAPERS);
+				for(int i=0;i<maxCount;i++){
+					String dstPath = ComUtil.pathConcat(srcTmpDir,getWallpaperName(CANDIDATE_WALLPAPER_START_IDX+i,false));
+					BinUtil.convertImage(ComUtil.pathConcat(srcCandidatePath,srcFiles[i]), dstPath);
+					BinUtil.resizeImage(dstPath, ComUtil.pathConcat(srcTmpDir,getWallpaperName(CANDIDATE_WALLPAPER_START_IDX+i,true)), SMALL_SIZE);
+					wallpaperCount++;
+				}
+			}
+			if(wallpaperCount == 0){
+				return;
+			}
+			
+			String launcherTmpDir = ComUtil.pathConcat(tmpDir,"launcher");
+			//BinUtil.mkdir(launcherTmpDir);
+			int startIdx = isDefaultModified ? DEFAULT_WALLPAPER_IDX : CANDIDATE_WALLPAPER_START_IDX;
+			StringBuilder sb = new StringBuilder();
+			for(String drawable : LAUCNHER_DRAWABLES){
+				String dstDir = ComUtil.pathConcat(launcherTmpDir,"res",drawable);
+				BinUtil.mkdir(dstDir);
+				BinUtil.copy(ComUtil.pathConcat(srcTmpDir,"*"),dstDir);
+				for(int i=0;i<wallpaperCount;i++){
+					sb.append(" ");
+					sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawable,getWallpaperName(startIdx+i,false))));
+					sb.append(" ");
+					sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawable,getWallpaperName(startIdx+i,true))));
+				}
+			}
+			BinUtil.zipUpdateApk(launcherTmpDir, launcherPath, sb.toString());
+			
+			if(isDefaultModified){
+				mDefaultItem.markState(STATE_SUCCESS);
+			}
+			if(isCandidateModified){
+				mCandidateItem.markState(STATE_SUCCESS);
+			}
+			Log.i(">>>>>>>>>>>>>>>>>>>>>>>>>>modify wallpaper end");
 		}
 
-		private void updateApkWallpaper(String srcWallpaperPath, String tmpDir, String apkPath, 
-			String updateDir, String updateFile){
-			String tmpUpdateDir = ComUtil.pathConcat(tmpDir,updateDir);
-			BinUtil.mkdir(tmpUpdateDir);
-			BinUtil.copy(srcWallpaperPath, ComUtil.pathConcat(tmpUpdateDir,updateFile));
-			BinUtil.zipUpdateApk(tmpDir, apkPath, ComUtil.pathConcat(updateDir,updateFile));
-		}
-
-		private void updateFrameworkWallpaper(String wallpaperpath){
-			String tmpPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"wallpaper","framework");
-			updateApkWallpaper(wallpaperpath,tmpPath,ComUtil.FRAMEWORK_RES,
-				ComUtil.pathConcat("res","drawable-nodpi"),"default_wallpaper.jpg");
-			updateApkWallpaper(wallpaperpath,tmpPath,ComUtil.FRAMEWORK_RES,
-				ComUtil.pathConcat("res","drawable-sw600dp-nodpi"),"default_wallpaper.jpg");
-		}
-
-		private void updateLauncherWallpaper(String wallpaperpath,String updateFile){
-			String tmpPath = ComUtil.pathConcat(ComUtil.OUT_DIR,"wallpaper","launcher");
-			//find Launcher2.apk
-			String launcherPath = null;
+		private String getLauncherApkPath(){
 			String[] launcherPaths = new String[]{
 				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app","Launcher2.apk"),
 				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher2.apk")
@@ -670,21 +796,15 @@ public class MediaPanel extends JPanel{
 			for(String path : launcherPaths){
 				File launcherApk = new File(path);
 				if(launcherApk.exists()){
-					launcherPath = path;
-					break;
+					return path;
 				}
 			}
+			return null;
+		}
 
-			if(launcherPath == null){
-				return;
-			}
-
-			updateApkWallpaper(wallpaperpath,tmpPath,launcherPath,
-				ComUtil.pathConcat("res","drawable-sw400dp-nodpi"),updateFile);
-			updateApkWallpaper(wallpaperpath,tmpPath,launcherPath,
-				ComUtil.pathConcat("res","drawable-sw480dp-nodpi"),updateFile);
-			updateApkWallpaper(wallpaperpath,tmpPath,launcherPath,
-				ComUtil.pathConcat("res","drawable-sw600dp-nodpi"),updateFile);
+		private String getWallpaperName(int index, boolean isSmall){
+			String suffix = isSmall ? "_small.jpg" : ".jpg";
+			return ComUtil.strConcat("wallpaper_",mDF.format(index),suffix);
 		}
 	}
 

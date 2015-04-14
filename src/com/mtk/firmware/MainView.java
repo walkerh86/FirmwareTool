@@ -135,7 +135,11 @@ public class MainView extends JFrame implements ActionListener
 
 		updateTabbedPane(false);
 		setIconImage(Toolkit.getDefaultToolkit().createImage(MainView.class.getResource("/res/logo.png")));
-		setTitle("Ty Firmware Tool Ver." + verUpdate.getLocalVer());
+		String verStr = "Ty Firmware Tool Ver." + verUpdate.getLocalVer();
+		if(ComUtil.FAST_MODE){
+			verStr += " fast";
+		}
+		setTitle(verStr);
 		setResizable(false);
 		setSize(PANEL_MAIN_WIDTH, PANEL_MAIN_HEIGHT);
 		setVisible(true);
@@ -353,7 +357,9 @@ public class MainView extends JFrame implements ActionListener
 				Log.setEnabled(true);
 			}
 		}
-		//Log.setEnabled(true);
+		if(!ComUtil.DEBUG_MODE){
+			Log.setEnabled(true);
+		}
 		SwingUtilities.invokeLater(new Runnable(){		
 			public void run(){			
 				MainView.getInstance();

@@ -168,25 +168,26 @@ public class InfoPanel extends JPanel{
 		item.setSubKey("ro.product.locale.region");
 		mPropSets.add(item);
 		
-		mPropSets.add(new TextPropItemView("ro.product.model","机型名称", MainView.getBounds(1, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.product.brand","品牌名称", MainView.getBounds(1, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.product.manufacturer","制造商", MainView.getBounds(2, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("bluetooth.HostName","蓝牙名称", MainView.getBounds(2, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.product.device","设备名称", MainView.getBounds(3, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.build.display.id","版本号", MainView.getBounds(3, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.custom.build.version","自定版本", MainView.getBounds(4, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.ums.label","磁盘名称", MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.storage.fakein","假内部存储(Gb)", MainView.getBounds(5, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.storage.fakesd","假手机存储(Gb)", MainView.getBounds(6, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.storage.fakeram","假正在运行(Gb)", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.setting.brightness","默认亮度(%)", MainView.getBounds(7, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.browser.homepage","默认主页", MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.default.ime","默认输入法", MainView.getBounds(8, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.ty.default.wallpaper","默认APK壁纸", MainView.getBounds(8, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("wlan.SSID","共享SSID", MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mPropSets.add(new TextPropItemView("ro.product.model","机型名称", MainView.getBounds(1, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.product.brand","品牌名称", MainView.getBounds(1, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.product.manufacturer","制造商", MainView.getBounds(2, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("bluetooth.HostName","蓝牙名称", MainView.getBounds(2, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.product.device","设备名称", MainView.getBounds(3, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.build.display.id","版本号", MainView.getBounds(1, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mPropSets.add(new TextPropItemView("ro.custom.build.version","自定版本", MainView.getBounds(2, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mPropSets.add(new TextPropItemView("ro.ty.ums.label","磁盘名称", MainView.getBounds(3, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("wlan.SSID","共享SSID", MainView.getBounds(4, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.setting.brightness","默认亮度(%)", MainView.getBounds(4, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.storage.fakein","假内部存储(Gb)", MainView.getBounds(5, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.storage.fakesd","假手机存储(Gb)", MainView.getBounds(5, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.storage.fakeram","假正在运行(Gb)", MainView.getBounds(6, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.setting.fake.androidver","假Android版本", MainView.getBounds(6, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.browser.homepage","默认主页", MainView.getBounds(3, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mPropSets.add(new TextPropItemView("ro.ty.default.ime","默认输入法", MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mPropSets.add(new TextPropItemView("ro.ty.default.wallpaper","默认APK壁纸", MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 
-		mPropSets.add(new CheckPropItemView("ro.ty.launcher.bgtrans","主菜单背景透明", MainView.getBounds(9, 0, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new CheckPropItemView("ro.ty.lang.bysim","语言随SIM卡变化", MainView.getBounds(9, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		mPropSets.add(new CheckPropItemView("ro.ty.launcher.bgtrans","主菜单背景透明", MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new CheckPropItemView("ro.ty.lang.bysim","语言随SIM卡变化", MainView.getBounds(6, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 				
 		initPropViews(this);
 	}

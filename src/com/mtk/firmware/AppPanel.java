@@ -62,7 +62,7 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 	private int mPackedSizeMb;
 
 	private static final int LIST_ROW_NUM = 12;
-	private static final int LIST_COL_NUM = 20;
+	private static final int LIST_COL_NUM = 14;
 	
 	private static final int ADDPANEL_ROW_IDX = 2;
 	private static final int ADDPANEL_COL_IDX = 1;
@@ -133,14 +133,14 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 
 		JLabel packedLabel = new JLabel("已添加");
 		packedLabel.setBounds(grid.getBounds(0, PACKEDPANEL_COL_IDX, 2, 10));
-		//add(packedLabel);
+		add(packedLabel);
 		mPackedList = new JList();
 		mPackedList.setModel(new DefaultListModel());
 		mPackedModel = (DefaultListModel) mPackedList.getModel();
 		JScrollPane packedPanel = new JScrollPane(mPackedList);
 		packedPanel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.black));
 		packedPanel.setBounds(grid.getBounds(PACKEDPANEL_ROW_IDX, PACKEDPANEL_COL_IDX, LIST_ROW_NUM, LIST_COL_NUM));
-		//add(packedPanel);
+		add(packedPanel);
 		mPackedDel = new JButton("删除");
 		mPackedDel.addActionListener(this);
 		mPackedDel.setBounds(grid.getBounds(ACTION_BTN_ROW_IDX, PACKEDPANEL_COL_IDX, ACTION_BTN_ROW_NUM, ACTION_BTN_COL_NUM));

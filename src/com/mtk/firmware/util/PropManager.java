@@ -109,4 +109,18 @@ public class PropManager {
 		PropManager propManager = PropManager.getInstance();
 		return propManager.getValue("ro.build.version.release");
 	}
+
+	public static boolean isDispPort(){
+		PropManager propManager = PropManager.getInstance();
+		String value = propManager.getValue("ro.ty.disp.port");
+		boolean port = (value == null) ? false : value.equals("1");
+		return port;
+	}
+
+	public static boolean isLogoDispPort(){
+		PropManager propManager = PropManager.getInstance();
+		String value = propManager.getValue("ro.ty.logo.disp.port");
+		boolean port = (value == null) ? isDispPort() : value.equals("1");
+		return port;
+	}
 }

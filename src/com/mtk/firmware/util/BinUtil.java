@@ -13,11 +13,11 @@ import java.io.OutputStream;
 public class BinUtil {
 	public static void zipUpdateApk(String cdDir, String apkPath, String updatePath){
 		String cmdCdDir = ComUtil.strConcatSpace("cmd /c cd /d ",ComUtil.strWithQuotation(cdDir));
-		String cmdZipUpdate = ComUtil.strConcatSpace(ComUtil.BIN_ZIP,"-m",apkPath,ComUtil.strWithQuotation(updatePath));
+		String cmdZipUpdate = ComUtil.strConcatSpace(ComUtil.BIN_ZIP,"-m",ComUtil.strWithQuotation(apkPath),updatePath);
 		String cmd = ComUtil.cmdConcat(cmdCdDir,cmdZipUpdate);
 		doCmd(cmd);
 	}
-
+	
 	public static void zipCompress(String cdDir, String dstFile, String zipParam){
 		String cmdCdDir = ComUtil.strConcatSpace("cmd /c cd /d ",ComUtil.strWithQuotation(cdDir));
 		String cmdCompress = ComUtil.strConcatSpace(ComUtil.BIN_ZIP,zipParam,dstFile,"*");
@@ -45,8 +45,8 @@ public class BinUtil {
 		doCmd(cmd);
 	}
 
-	public static void resizeImage(String imgPath, String size){
-		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_CONVERT,ComUtil.strWithQuotation(imgPath),"-resize",size,ComUtil.strWithQuotation(imgPath));
+	public static void resizeImage(String imgPath, String dstPath, String size){
+		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_CONVERT,ComUtil.strWithQuotation(imgPath),"-resize",size,ComUtil.strWithQuotation(dstPath));
 		doCmd(cmd);
 	}
 
@@ -91,7 +91,7 @@ public class BinUtil {
 	}
 
 	public static void sedReplace(String filePath, String prop, String value){
-		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_SED,"-i",ComUtil.strConcat("/^",prop,"/s/=.*/=",value,"/"),filePath);
+		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_SED,"-i",ComUtil.strWithQuotation(ComUtil.strConcat("/^",prop,"/s/=.*/=",value,"/")),filePath);
 		doCmd(cmd);
 	}
 
@@ -123,7 +123,7 @@ public class BinUtil {
 							if(inline.contains("Press any key to continue")){
 								p.destroy();
 							}
-							Log.i(inline);
+							//Log.i(inline);
 						}
 						inBr.close();
 					}catch (Exception e) {
