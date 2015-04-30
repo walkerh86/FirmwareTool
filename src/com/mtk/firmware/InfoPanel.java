@@ -57,7 +57,7 @@ public class InfoPanel extends JPanel{
 		if (iPanel == null){
 			iPanel = new InfoPanel();
 			if(ComUtil.DEBUG_MODE){
-				iPanel.preload();
+				iPanel.onRomLoaded();
 			}
 		}
 		return iPanel;
@@ -143,7 +143,7 @@ public class InfoPanel extends JPanel{
 		}
 	}
 
-	public void preload(){
+	public void onRomLoaded(){
 		if(mPropManager == null){
 			mPropManager = PropManager.getInstance();
 		}
@@ -185,6 +185,7 @@ public class InfoPanel extends JPanel{
 		mPropSets.add(new TextPropItemView("ro.ty.browser.homepage","默认主页", MainView.getBounds(3, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.ime","默认输入法", MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.wallpaper","默认APK壁纸", MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
+		//mPropSets.add(new TextPropItemView("ro.sf.lcd_density","假Android版本", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS/2)));
 
 		mPropSets.add(new CheckPropItemView("ro.ty.launcher.bgtrans","主菜单背景透明", MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new CheckPropItemView("ro.ty.lang.bysim","语言随SIM卡变化", MainView.getBounds(6, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));

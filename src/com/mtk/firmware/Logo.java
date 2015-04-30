@@ -154,7 +154,7 @@ public class Logo
 				out.close();
 			}
 			in.close();
-			Log.i("------------------unpack logo.bin finished");
+			Log.i("<<<<<<<<<<<<<<<<<<<<<<<<<<unpack logo.bin finished");
 		}
 		catch (FileNotFoundException e)
 		{
@@ -219,7 +219,7 @@ public class Logo
 		{
 			e1.printStackTrace();
 		}
-		Log.i("------------------repack logo.bin finished");
+		Log.i(">>>>>>>>>>>>>>>>>>>>>>>>>>repack logo.bin finished");
 	}
 
 }

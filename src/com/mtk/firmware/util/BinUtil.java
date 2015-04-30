@@ -25,6 +25,11 @@ public class BinUtil {
 		doCmd(cmd);
 	}
 
+	public static void zipDelete(String zipPath, String delPaths){
+		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_ZIP,"-d",ComUtil.strWithQuotation(zipPath),delPaths);
+		doCmd(cmd);
+	}
+
 	public static void unzipExtract(String zipFile, String extractPath, String dstDir){
 		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_UNZIP,"-o",ComUtil.strWithQuotation(zipFile),ComUtil.strWithQuotation(extractPath),"-d",ComUtil.strWithQuotation(dstDir));
 		doCmd(cmd);

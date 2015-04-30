@@ -71,11 +71,13 @@ public class MainView extends JFrame implements ActionListener
 	private ProGressWork			exec				= null;
 
 	public static final int PANEL_MAIN_WIDTH = 800;
-	public static final int PANEL_MAIN_HEIGHT = 520;
+	public static final int PANEL_MAIN_HEIGHT = 560;
 	public static final int PANEL_MAIN_ROW_SIZE = 20;
 	public static final int PANEL_MAIN_COL_SIZE = 15;
 	public static final int PANEL_MAIN_PADDING = 10;
 	public static final int PANEL_MAIN_ROW_PADDING = 20;
+
+	private boolean mForceRepack;
 	
 	private MainView(){
 		try{		
@@ -176,9 +178,9 @@ public class MainView extends JFrame implements ActionListener
 			return;
 		}
 	
-		tabbedPane.setEnabledAt(0, bool);
-		tabbedPane.setEnabledAt(1, bool);
-		tabbedPane.setEnabledAt(2, bool);
+		//tabbedPane.setEnabledAt(0, bool);
+		//tabbedPane.setEnabledAt(1, bool);
+		//tabbedPane.setEnabledAt(2, bool);
 		infoPanel.setEnabled(bool);
 		mediaPanel.setEnabled(bool);
 		appPanel.setEnabled(bool);
@@ -197,19 +199,22 @@ public class MainView extends JFrame implements ActionListener
 
 	@Override
 	public void actionPerformed(ActionEvent e){	
-		if (e.getSource() == execButton){		
-			if (isModified()){
-				if(!isModifiedValid()){
+		if (e.getSource() == execButton){
+			mForceRepack = false;
+			if(!isModified()){
+				int option = JOptionPane.showConfirmDialog(null, "没啥好修改的，继续打包？", "提示", JOptionPane.YES_NO_OPTION);
+				if (option == JOptionPane.NO_OPTION){
 					return;
+				}else{
+					mForceRepack = true;
 				}
-				execButton.setEnabled(false);
-				exec = new ProGressWork();
-				exec.execute();
 			}
-			else
-			{
-				JOptionPane.showMessageDialog(null, "没啥好修改的！");
+			if(!isModifiedValid() && !mForceRepack){
+				return;
 			}
+			execButton.setEnabled(false);
+			exec = new ProGressWork();
+			exec.execute();
 		}
 	}
 
@@ -330,7 +335,7 @@ public class MainView extends JFrame implements ActionListener
 				firmwarePanel.repackUserdata();
 			}
 			
-			if (isSystemModified()){			
+			if (mForceRepack || isSystemModified()){			
 				firmwarePanel.repackSystem();
 			}
 

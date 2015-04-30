@@ -89,7 +89,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		if (fPanel == null){		
 			fPanel = new FirmwarePanel();
 			if(ComUtil.DEBUG_MODE){
-				fPanel.setFirmwarePath("E:\\roms\\TY0701_3G-HD-2_V2.3.5_150121\\software");
+				fPanel.setFirmwarePath("E:\\roms\\TY0701B_3G-LD-2_V2.8.5_150320\\software");
 			}
 		}
 		return fPanel;
@@ -285,10 +285,10 @@ public class FirmwarePanel extends JPanel implements ActionListener
 				JOptionPane.showMessageDialog(null,"ROM非法");
 				return;
 			}
+			InfoPanel.getInstance().onRomLoaded();
+			MediaPanel.getInstance().onRomLoaded();
+			AppPanel.getInstance().onRomLoaded();
 			MainView.getInstance().updateTabbedPane(true);
-			InfoPanel.getInstance().preload();
-			MediaPanel.getInstance().preLoad();
-			AppPanel.getInstance().preLoad();
 		}
 	}
 

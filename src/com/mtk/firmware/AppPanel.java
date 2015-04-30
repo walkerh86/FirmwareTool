@@ -187,7 +187,7 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 		return aPanel;
 	}
 
-	public void preLoad(){
+	public void onRomLoaded(){
 		if(mAddModel != null){
 			mAddModel.removeAllElements();
 		}

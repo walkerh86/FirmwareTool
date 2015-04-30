@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.io.File;
 
 public class ComUtil {
-	public static final boolean DEBUG_MODE = true; //no need to load system.img in this mode
+	public static final boolean DEBUG_MODE = false; //no need to load system.img in this mode
 	public static final boolean FAST_MODE = true; //no need copy system.img
 	
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
@@ -79,6 +79,13 @@ public class ComUtil {
 		return strConcatWith(tmpStrs);
 	}
 
+	public static String strConcatWithDot(String... strs){
+		String[] tmpStrs = new String[strs.length+1];
+		System.arraycopy(strs, 0, tmpStrs, 1, strs.length);
+		tmpStrs[0] = ".";
+		return strConcatWith(tmpStrs);
+	}
+	
 	public static String strWithQuotation(String str){
 		return new StringBuffer().append("\"").append(str).append("\"").toString();
 	}
@@ -92,5 +99,18 @@ public class ComUtil {
 
 	public static boolean strIsEmpty(String str){
 		return str == null || str.length() == 0;
+	}
+
+	public static String getFileNameSuffix(String name){
+		return name.substring(name.lastIndexOf(".")+1, name.length());
+	}
+
+	public static boolean isValidPictureFile(String name){
+		return isValidPictureSuffix(getFileNameSuffix(name));
+	}
+
+	public static boolean isValidPictureSuffix(String suffix){
+		return suffix.equalsIgnoreCase("jpg") || suffix.equalsIgnoreCase("jpeg") 
+			|| suffix.equalsIgnoreCase("bmp") || suffix.equalsIgnoreCase("png");
 	}
 }
