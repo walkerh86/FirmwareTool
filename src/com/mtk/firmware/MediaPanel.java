@@ -787,8 +787,6 @@ public class MediaPanel extends JPanel{
 			BinUtil.mkdir(srcTmpDir);
 			String srcCpDir = ComUtil.pathConcat(tmpDir,"src_cp");
 			BinUtil.mkdir(srcCpDir);
-			String sw480Dir = ComUtil.pathConcat(tmpDir,"sw480");
-			BinUtil.mkdir(sw480Dir);
 			
 			String srcDefPath = mDefaultItem.getMediaPath();
 			String srcCandidatePath = mCandidateItem.getMediaPath();
@@ -830,28 +828,34 @@ public class MediaPanel extends JPanel{
 			String launcherTmpDir = ComUtil.pathConcat(tmpDir,"launcher");
 			String launcherNodpiDir = ComUtil.pathConcat(launcherTmpDir,"res","drawable-nodpi");
 			boolean rmNonCandidateWallpapers = isCandidateModified && mCandidateItem.getRemoveOther();
-			//handle old version problem begin, deprecate drawable-sw400dp-nodpi,drawable-sw480dp-nodpi
-			String deprecatedDrawables = ComUtil.pathConcat("res","drawable-sw480dp-nodpi","*");
-			BinUtil.unzipExtract(launcherPath, deprecatedDrawables, sw480Dir);
-			String deprecatedDir = ComUtil.pathConcat(sw480Dir,"res","drawable-sw480dp-nodpi");
-			if(new File(deprecatedDir).exists()){
-				String delPaths = ComUtil.strConcatSpace(deprecatedDrawables,ComUtil.pathConcat("res","drawable-sw400dp-nodpi","*"));
-				BinUtil.zipDelete(launcherPath,delPaths);
-				
-				BinUtil.mkdir(launcherNodpiDir);
-				if(isCandidateModified && rmNonCandidateWallpapers){
-					BinUtil.copy(ComUtil.pathConcat(deprecatedDir,"Wallpaper_01*"),launcherNodpiDir);
-				}else{
-					BinUtil.copy(ComUtil.pathConcat(deprecatedDir,"*"),launcherNodpiDir);
+			String[] launcherDrawables = new String[4];
+			int swDp = PropManager.getLcmDp();
+			Log.i("swDp="+swDp);
+
+			int[] allSws = new int[]{600,480,400,0};
+			int index = 0;
+			for(int sw : allSws){
+				if(swDp == 0){
+					launcherDrawables[index++] = getSwDpDrawableName(sw);
+					continue;
 				}
-				wallpaperCount++; //just indicate has wallpaper
+				if(sw <= swDp){
+					launcherDrawables[index++] = getSwDpDrawableName(sw);
+				}
 			}
-			//handle old version problem end
+			String tmpDrawablesDir = ComUtil.pathConcat(tmpDir,"drawables");
+			for(String drawableDir : launcherDrawables){
+				if(drawableDir == null){
+					break;
+				}
+				String zipDrawablePath = ComUtil.pathConcat("res",drawableDir,"*");
+				BinUtil.unzipExtract(launcherPath, zipDrawablePath, tmpDrawablesDir);
+			}
 			
 			if(isCandidateModified){
 				String[] srcFiles = new File(srcCandidatePath).list();
 				int maxCount = Math.min(srcFiles.length,MAX_WALLPAPERS);
-				int index = CANDIDATE_WALLPAPER_START_IDX;
+				index = CANDIDATE_WALLPAPER_START_IDX;
 				for(int i=0;i<maxCount;i++){
 					if(!ComUtil.isValidPictureFile(srcFiles[i])){
 						Log.i("invalid wallpaper file "+srcFiles[i]);
@@ -869,37 +873,63 @@ public class MediaPanel extends JPanel{
 				if(rmNonCandidateWallpapers){
 					//backup default wallpaper
 					if(!isDefaultModified){
-						for(String drawable : WALLPAPER_DRAWABLES){
-							String defaultWallpaepr = ComUtil.pathConcat("res",drawable,getWallpaperName(DEFAULT_WALLPAPER_IDX,false));
-							BinUtil.unzipExtract(launcherPath, defaultWallpaepr, launcherTmpDir);
-							defaultWallpaepr = ComUtil.pathConcat("res",drawable,getWallpaperName(DEFAULT_WALLPAPER_IDX,true));
-							BinUtil.unzipExtract(launcherPath, defaultWallpaepr, launcherTmpDir);
-							wallpaperCount++; //just indicate has wallpaper
+						String[] defWallpapers = new String[]{getWallpaperName(DEFAULT_WALLPAPER_IDX,false),getWallpaperName(DEFAULT_WALLPAPER_IDX,true)};
+						for(String wallpaperName : defWallpapers){
+							for(String drawableDir : launcherDrawables){
+								if(drawableDir == null){
+									break;
+								}
+								String defaultWallpaepr = ComUtil.pathConcat(tmpDrawablesDir,"res",drawableDir,wallpaperName);
+								if(new File(defaultWallpaepr).exists()){
+									String dstDir = ComUtil.pathConcat(launcherTmpDir,"res",drawableDir);
+									BinUtil.mkdir(dstDir);
+									BinUtil.copy(defaultWallpaepr,dstDir);
+									if(swDp > 0){
+										break;
+									}
+								}
+								wallpaperCount++; //just indicate has wallpaper
+							}
 						}
 					}
 					StringBuilder delPathBuilder = new StringBuilder();
-					for(String drawable : WALLPAPER_DRAWABLES){
+					boolean hasNoDpi = false;
+					for(String drawable : launcherDrawables){
 						delPathBuilder.append(" ");
 						delPathBuilder.append(ComUtil.pathConcat("res",drawable,"wallpaper_*"));
+						
 					}
 					BinUtil.zipDelete(launcherPath,delPathBuilder.toString());
 				}
 			}
-			
+
 			if(wallpaperCount == 0){
 				return;
 			}
-			
-			//BinUtil.mkdir(launcherTmpDir);
-			int startIdx = isDefaultModified ? DEFAULT_WALLPAPER_IDX : CANDIDATE_WALLPAPER_START_IDX;
-			StringBuilder sb = new StringBuilder();
-			for(String drawable : WALLPAPER_DRAWABLES){
-				String dstDir = ComUtil.pathConcat(launcherTmpDir,"res",drawable);
-				BinUtil.mkdir(dstDir);
-				BinUtil.copy(ComUtil.pathConcat(srcTmpDir,"*"),dstDir);
 
+			String[] wallpaperDrawables = new File(srcTmpDir).list();
+			for(String wallpaperName : wallpaperDrawables){
+				for(String drawableDir : launcherDrawables){
+					if(drawableDir == null){
+						break;
+					}
+					String wallpaperPath = ComUtil.pathConcat(tmpDrawablesDir,"res",drawableDir,wallpaperName);
+					if(new File(wallpaperPath).exists()){
+						String srcPath = ComUtil.pathConcat(srcTmpDir,wallpaperName);
+						String dstDir = ComUtil.pathConcat(launcherTmpDir,"res",drawableDir);
+						BinUtil.mkdir(dstDir);
+						BinUtil.copy(srcPath,dstDir);
+						if(swDp > 0){
+							break;
+						}
+					}
+				}
+			}
+			StringBuilder sb = new StringBuilder();
+			String[] dstDrawableDirs = new File(ComUtil.pathConcat(launcherTmpDir,"res")).list();
+			for(String drawableDir : dstDrawableDirs){
 				sb.append(" ");
-				sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawable,"*")));
+				sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawableDir,"*")));
 			}
 			BinUtil.zipUpdateApk(launcherTmpDir, launcherPath, sb.toString());
 			
@@ -929,6 +959,13 @@ public class MediaPanel extends JPanel{
 		private String getWallpaperName(int index, boolean isSmall){
 			String suffix = isSmall ? "_small.jpg" : ".jpg";
 			return ComUtil.strConcat("wallpaper_",mDF.format(index),suffix);
+		}
+
+		private String getSwDpDrawableName(int swDp){
+			if(swDp > 0){
+				return new StringBuilder().append("drawable-sw").append(String.valueOf(swDp)).append("dp-nodpi").toString();
+			}
+			return "drawable-nodpi";
 		}
 	}
 

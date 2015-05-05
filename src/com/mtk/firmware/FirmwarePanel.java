@@ -89,7 +89,8 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		if (fPanel == null){		
 			fPanel = new FirmwarePanel();
 			if(ComUtil.DEBUG_MODE){
-				fPanel.setFirmwarePath("E:\\roms\\TY0701B_3G-LD-2_V2.8.5_150320\\software");
+				fPanel.setFirmwarePath("E:\\release\\TWD_NEUTRAL\\KK\\TY0712B_3G-LD-2_KK_V3.0.1_150416\\software");
+				fPanel.setAndroidSize();
 			}
 		}
 		return fPanel;
@@ -161,6 +162,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		}
 
 		systemSize = size / 1024 / 1024;
+		mSysImgSizeMb = systemSize;
 	}
 
 	private boolean isFirmwareDir(File file)

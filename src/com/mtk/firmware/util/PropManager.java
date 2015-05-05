@@ -123,4 +123,35 @@ public class PropManager {
 		boolean port = (value == null) ? isDispPort() : value.equals("1");
 		return port;
 	}
+
+	public static int getDensity(){
+		int density = 0;
+		PropManager propManager = PropManager.getInstance();
+		String value = propManager.getValue("ro.sf.lcd_density");
+		if(value != null){
+			density = Integer.valueOf(value);
+		}
+		return density;
+	}
+
+	public static int getLcmDp(){
+		PropManager propManager = PropManager.getInstance();
+		String value = propManager.getValue("ro.ty.flag");
+		if(value == null){
+			value = propManager.getValue("ro.build.display.id");
+		}
+		int sw = 0;
+		if(value.contains("-HD-")){
+			sw = 600;
+		}else if(value.contains("-LD-")){
+			sw = 480;
+		}else{
+			return sw;
+		}
+		int density = getDensity();
+		if(density == 0){
+			return sw;
+		}
+		return sw*160/density;
+	}
 }
