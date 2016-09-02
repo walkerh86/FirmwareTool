@@ -22,6 +22,10 @@ public class Item
 		return id;
 	}
 
+	public void setId(String str){
+		id = str;
+	}
+
 	public String getDescription()
 	{
 		return description;

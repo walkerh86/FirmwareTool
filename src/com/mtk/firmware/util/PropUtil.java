@@ -48,6 +48,7 @@ public class PropUtil {
 		String oldValue = getValue(prop);
 		if(!oldValue.equals(value)){
 			mPropMapsModified.put(prop,value);
+			mPropMaps.put(prop,value);
 		}
 	}
 
@@ -87,6 +88,9 @@ public class PropUtil {
 		}catch (IOException e){			
 			e.printStackTrace();
 		}
-		
+	}
+
+	public void addProp(String prop, String value){
+		mPropMaps.put(prop,value);
 	}
 }

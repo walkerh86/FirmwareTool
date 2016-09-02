@@ -101,8 +101,9 @@ public class PropManager {
 		return modified;
 	}
 
-	public static void insertBuildProp(String prop, String value){
+	public void insertBuildProp(String prop, String value){
 		BinUtil.sedInsert(ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"build.prop"),prop,value);
+		mPropUtils[0].addProp(prop,value);
 	}
 
 	public static String getAndroidVersion(){
@@ -112,8 +113,12 @@ public class PropManager {
 
 	public static boolean isDispPort(){
 		PropManager propManager = PropManager.getInstance();
-		String value = propManager.getValue("ro.ty.disp.port");
-		boolean port = (value == null) ? false : value.equals("1");
+		String value = propManager.getValue("ro.ty.flag");
+		boolean port = (value == null) ? false : value.contains("_PORT");
+		String board = propManager.getValue("ro.product.board");
+		if("joya82_wet_kk".equals(board)){
+			port = false;
+		}
 		return port;
 	}
 

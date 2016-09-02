@@ -47,6 +47,7 @@ public class MediaPanel extends JPanel{
 	private String mRomPath;
 	private boolean mIsKernelLogoInSystem;
 	private boolean mIsHiddenLogoSupport;
+	private boolean mIsLockIconSupport;
 
 	private MediaPanel()
 	{
@@ -108,6 +109,7 @@ public class MediaPanel extends JPanel{
 		mRomPath = FirmwarePanel.getInstance().getRomPath();
 		mIsKernelLogoInSystem = !isAndroidVerKK();
 		mIsHiddenLogoSupport = isHideLogoSupport();
+		mIsLockIconSupport = isAndroidVerKK();
 	}
 
 	private boolean isAndroidVerKK(){
@@ -267,6 +269,17 @@ public class MediaPanel extends JPanel{
 		mMediaItemViews.put(KEY_SHUT_AUDIO2,new AudioItemView("隐藏关机铃声",JFileChooser.FILES_ONLY, audioFileFilter, "选择mp3文件",MainView.getBounds(7, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS),"shutaudio2.mp3",true));
 		mMediaItemViews.put(KEY_FAT_IMAGE,new FatItemView("fat_sparse.img",JFileChooser.FILES_ONLY, imageFileFilter, "选择image文件",MainView.getBounds(10, 0, 1, PROP_ITEM_COLS*2+1),FirmwarePanel.getInstance().getRomPath()));
 
+		FileFilter pngFileFilter = new GenericFileFilter(new String[]{"png"}, "Images Files(*.png)");
+		String[] DRAWABLES = new String[]{"drawable-hdpi","drawable-sw600dp-hdpi"};
+		String[] DRAWABLES_SIZE_KEYGUARD = new String[]{"162x162","183x183"};
+		String[] DRAWABLES_SIZE_LAUNCHER = new String[]{"72x72","96x96"};
+		mMediaItemViews.put("keyguard_lock",new DrawableItemView("锁屏解锁图标",JFileChooser.FILES_ONLY, pngFileFilter, "选择image文件",MainView.getBounds(11, 0, 1, PROP_ITEM_COLS),
+			ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Keyguard.apk"),new String[]{"ic_lockscreen_handle_normal"},
+			"lock_icon",DRAWABLES,DRAWABLES_SIZE_KEYGUARD));
+		mMediaItemViews.put("launcher_allapp",new DrawableItemView("桌面进菜单图标",JFileChooser.FILES_ONLY, pngFileFilter, "选择image文件",MainView.getBounds(11, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS),
+			ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher2.apk"),new String[]{"ic_allapps","ic_allapps_pressed"},
+			"allapp_icon",DRAWABLES,DRAWABLES_SIZE_LAUNCHER));
+		
 		Iterator<Map.Entry<String,MediaItemView>> iter = mMediaItemViews.entrySet().iterator();
 		while(iter.hasNext()){
 			Map.Entry<String,MediaItemView> entry = iter.next();
@@ -486,9 +499,11 @@ public class MediaPanel extends JPanel{
 				}
 				int logoIndex = mLogoItems[i].getIndex();
 				String srcPath = mLogoItems[i].getMediaPath();
+				String dstPath = ComUtil.pathConcat(tmpPath,logoIndex+"."+ComUtil.getFileNameSuffix(srcPath));
+				BinUtil.copy(srcPath,dstPath);
 				String dstBmp = ComUtil.pathConcat(tmpPath,logoIndex+".bmp");
-				int degree = getLogoSizeAndRotate(srcPath,null);
-				convertLogo(srcPath,dstBmp,degree);
+				int degree = getLogoSizeAndRotate(dstPath,null);
+				convertLogo(dstPath,dstBmp,degree);
 				//Log.i("modify logo, path="+path+",dstBmp="+dstBmp);
 				if(mIsKernelLogoInSystem && mLogoItems[i].isKenelLogo()){
 					String bootLogo = mLogoItems[i].isHidden() ? "boot_logo2" : "boot_logo";
@@ -1060,6 +1075,54 @@ public class MediaPanel extends JPanel{
 
 		@Override
 		public void doModify() {
+		}
+	}
+
+	private class DrawableItemView extends MediaItemView{
+		private String mApkPath;
+		private String[] mNames;
+		private String mTmpDir;
+		private String[] mDrawables;
+		private String[] mSizes;
+		
+		public DrawableItemView(String label, int selMode, FileFilter filter, String title, Rectangle rect, 
+			String apkPath, String[] drawableNames, String tmpDir, String[] drawables, String[] sizes){
+			super(label, selMode, filter, title, rect);
+			mApkPath = apkPath;
+			mNames = drawableNames;
+			mTmpDir =  tmpDir;
+			mDrawables = drawables;
+			mSizes = sizes;
+		}
+
+		@Override
+		public boolean doRealModify() {
+			String tmpDir = ComUtil.pathConcat(ComUtil.OUT_DIR,mTmpDir);
+			ComUtil.mkTempDir(tmpDir);
+			String srcTmpDir = ComUtil.pathConcat(tmpDir,"src_tmp");
+			BinUtil.mkdir(srcTmpDir);
+			
+			String srcDefPath = getMediaPath();
+			String srcCpPath = ComUtil.pathConcat(srcTmpDir,ComUtil.strConcatWithDot("tmp",ComUtil.getFileNameSuffix(srcDefPath)));
+			BinUtil.copy(srcDefPath,srcCpPath);
+			StringBuilder sb = new StringBuilder();
+			for(int i=0;i<mDrawables.length;i++){
+				String dstDir = ComUtil.pathConcat(tmpDir,"res",mDrawables[i]);
+				BinUtil.mkdir(dstDir);
+				for(String name : mNames){
+					String dstPath = ComUtil.pathConcat(dstDir,ComUtil.strConcatWithDot(name,"png"));
+					BinUtil.resizeImage(srcCpPath,dstPath, mSizes[i]);
+				}
+				sb.append(" ");
+				sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",mDrawables[i],"*")));
+			}
+			BinUtil.zipUpdateApk(tmpDir, mApkPath, sb.toString());
+			return true;
+		}
+
+		@Override
+		public void setEnabled(boolean enable) {
+			super.setEnabled(mIsLockIconSupport && enable);
 		}
 	}
 }

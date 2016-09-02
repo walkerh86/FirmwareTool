@@ -185,10 +185,13 @@ public class InfoPanel extends JPanel{
 		mPropSets.add(new TextPropItemView("ro.ty.browser.homepage","默认主页", MainView.getBounds(3, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.ime","默认输入法", MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.wallpaper","默认APK壁纸", MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		//mPropSets.add(new TextPropItemView("ro.sf.lcd_density","假Android版本", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.sf.lcd_density","屏幕密度", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.code.sw_logo","LOGO切换指令", MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 
-		mPropSets.add(new CheckPropItemView("ro.ty.launcher.bgtrans","主菜单背景透明", MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
-		mPropSets.add(new CheckPropItemView("ro.ty.lang.bysim","语言随SIM卡变化", MainView.getBounds(6, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new CheckPropItemView("ro.ty.launcher.bgtrans","主菜单背景透明", MainView.getBounds(7, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new CheckPropItemView("ro.ty.lang.bysim","语言随SIM卡变化", MainView.getBounds(7, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new CheckPropItemView("ro.ty.pwrmenu.reboot.enable","关机菜单显示重启", MainView.getBounds(8, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new CheckPropItemView("ro.ty.code.sw_logo.support","打开隐藏LOGO功能", MainView.getBounds(8, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 				
 		initPropViews(this);
 	}
@@ -360,7 +363,11 @@ public class InfoPanel extends JPanel{
 			if(value == null){
 				return;
 			}
-			mIsSelected = Integer.valueOf(value) != 0;
+			if("false".equals(value)){
+				mIsSelected = false;
+			}else{
+				mIsSelected = Integer.valueOf(value) != 0;
+			}
 			mJCheckBox.setSelected(mIsSelected);
 		}
 
@@ -432,6 +439,8 @@ public class InfoPanel extends JPanel{
 			if(index != -1){
 				mJComboBox.setSelectedIndex(index);
 				mItem = (Item)mJComboBox.getSelectedItem();
+			}else{
+				mItem.setId(value);//for language not in launguage.xml
 			}
 		}
 

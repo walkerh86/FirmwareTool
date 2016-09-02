@@ -71,11 +71,11 @@ public class MainView extends JFrame implements ActionListener
 	private ProGressWork			exec				= null;
 
 	public static final int PANEL_MAIN_WIDTH = 800;
-	public static final int PANEL_MAIN_HEIGHT = 560;
+	public static final int PANEL_MAIN_HEIGHT = 550;
 	public static final int PANEL_MAIN_ROW_SIZE = 20;
 	public static final int PANEL_MAIN_COL_SIZE = 15;
 	public static final int PANEL_MAIN_PADDING = 10;
-	public static final int PANEL_MAIN_ROW_PADDING = 20;
+	public static final int PANEL_MAIN_ROW_PADDING = 15;
 
 	private boolean mForceRepack;
 	
@@ -137,7 +137,7 @@ public class MainView extends JFrame implements ActionListener
 
 		updateTabbedPane(false);
 		setIconImage(Toolkit.getDefaultToolkit().createImage(MainView.class.getResource("/res/logo.png")));
-		String verStr = "Ty Firmware Tool Ver." + verUpdate.getLocalVer();
+		String verStr = "通文达固件修改工具 V" + verUpdate.getLocalVer();
 		if(ComUtil.FAST_MODE){
 			verStr += " fast";
 		}
@@ -302,7 +302,7 @@ public class MainView extends JFrame implements ActionListener
 	private void checkShutdownProp(){
 		if(mediaPanel.isShutdownModified()){
 			if(!PropManager.getInstance().isPorpExists("ro.operator.optr")){
-				PropManager.insertBuildProp("ro.operator.optr", "CUST");
+				PropManager.getInstance().insertBuildProp("ro.operator.optr", "CUST");
 			}
 		}
 	}
@@ -335,9 +335,9 @@ public class MainView extends JFrame implements ActionListener
 				firmwarePanel.repackUserdata();
 			}
 			
-			if (mForceRepack || isSystemModified()){			
+			//if (mForceRepack || isSystemModified()){			
 				firmwarePanel.repackSystem();
-			}
+			//}
 
 			firmwarePanel.checksumGen();
 

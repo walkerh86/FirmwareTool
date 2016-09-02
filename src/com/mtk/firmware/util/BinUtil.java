@@ -96,7 +96,7 @@ public class BinUtil {
 	}
 
 	public static void sedReplace(String filePath, String prop, String value){
-		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_SED,"-i",ComUtil.strWithQuotation(ComUtil.strConcat("/^",prop,"/s/=.*/=",value,"/")),filePath);
+		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_SED,"-i",ComUtil.strWithQuotation(ComUtil.strConcat("/^",prop,"=/s/=.*/=",value,"/")),filePath);
 		doCmd(cmd);
 	}
 
@@ -106,9 +106,9 @@ public class BinUtil {
 	}
 
 	public static void checksumGen(String dstPath){
-		final String DST_BIN = ComUtil.pathConcat(dstPath,"checksum.exe");
+		final String DST_BIN = ComUtil.strWithQuotation(ComUtil.pathConcat(dstPath,"CheckSum_Gen.exe"));
 		copy(ComUtil.BIN_CHECKSUM,DST_BIN);
-		String cmd = ComUtil.strConcatSpace(DST_BIN,dstPath);
+		String cmd = ComUtil.strConcatSpace(DST_BIN,ComUtil.strWithQuotation(dstPath));
 
 		Log.i(ComUtil.strConcatSpace("doCmd,cmd =",cmd));
 
@@ -148,7 +148,7 @@ public class BinUtil {
 
 			p.waitFor();
 
-			BinUtil.rm(DST_BIN);
+			//BinUtil.rm(DST_BIN);
 		}catch (Exception e) {
 			Log.i("doCmd, e="+e.toString()); 
 		}

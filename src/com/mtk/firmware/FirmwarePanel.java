@@ -125,7 +125,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		String read;
 		File f = new File(getFirmwarePath());
 		File scatterFile = null;
-		int size = 0;
+		long size = 0;
 		for (File i : f.listFiles())
 		{
 			if (i.getName().indexOf("scatter") != -1)
@@ -146,7 +146,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 				}
 				if ((read.indexOf("partition_size") != -1) && s)
 				{
-					size = Integer.valueOf(read.split("0x")[1].replace(" ", ""), 16);
+					size = Long.valueOf(read.split("0x")[1].replace(" ", ""), 16);
 					break;
 				}
 			}
@@ -161,7 +161,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 			e.printStackTrace();
 		}
 
-		systemSize = size / 1024 / 1024;
+		systemSize = (int)(size / 1024L / 1024L);
 		mSysImgSizeMb = systemSize;
 	}
 
@@ -186,6 +186,11 @@ public class FirmwarePanel extends JPanel implements ActionListener
 	}
 
 	private boolean romCheck(String sysDir){
+		if(ComUtil.ROM_AUTH_DISABLE){ 
+			PropManager mPropManager = PropManager.getInstance();
+			mPropManager.loadProps();
+			return true;
+		}
 		String tmpDir = ComUtil.pathConcat(ComUtil.OUT_DIR,"temp");
 		BinUtil.rm(tmpDir);
 		
@@ -320,6 +325,11 @@ public class FirmwarePanel extends JPanel implements ActionListener
 			File file = fd.getSelectedFile();
 			if (option == JFileChooser.APPROVE_OPTION)
 			{
+				String path = file.getAbsolutePath();
+				if(path.contains(" ")){
+					JOptionPane.showMessageDialog(null, "固件目录路径中请不要带空格！");
+					return;
+				}
 				if (isFirmwareDir(file))
 				{
 					try

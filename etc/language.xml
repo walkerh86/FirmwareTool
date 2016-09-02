@@ -45,7 +45,8 @@
 	<item id="lt_LT" value="立陶宛语，立陶宛"/>
 	<item id="lv_LV" value="拉托维亚语，拉托维亚"/>
 	<item id="ms_MY" value="马来语，马来西亚"/>
-	<item id="my_MM" value="缅甸语，缅甸"/>
+	<item id="my_MM" value="缅甸语，官方(MM)"/>
+	<item id="my_ZG" value="缅甸语，民间(ZG)"/>
 	<item id="nb_NO" value="挪威语，挪威"/>
 	<item id="nl_BE" value="荷兰语，比利时"/>
 	<item id="nl_NL" value="荷兰语，荷兰"/>

@@ -5,7 +5,8 @@ import java.io.File;
 
 public class ComUtil {
 	public static final boolean DEBUG_MODE = false; //no need to load system.img in this mode
-	public static final boolean FAST_MODE = true; //no need copy system.img
+	public static final boolean FAST_MODE = false; //no need copy system.img
+	public static final boolean ROM_AUTH_DISABLE = false; //no need copy system.img
 	
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final String USER_DIR = System.getProperty("user.dir");

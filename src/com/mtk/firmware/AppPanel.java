@@ -274,10 +274,8 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 		File[] apkFileList = getApkList();
 		for(File apkFile : apkFileList){
 			String srcPath = apkFile.getAbsolutePath();
+			BinUtil.unzipExtract(srcPath, ComUtil.pathConcat(armeabiDir,"*"), tmpApkLibDir);
 			BinUtil.unzipExtract(srcPath, ComUtil.pathConcat(armeabiV7Dir,"*"), tmpApkLibDir);
-			if(! new File(armeabiV7Path).exists()){
-				BinUtil.unzipExtract(srcPath, ComUtil.pathConcat(armeabiDir,"*"), tmpApkLibDir);
-			}
 		}
 		
 		String[] libPaths = new String[]{armeabiV7Path,armeabiPath};
@@ -303,6 +301,9 @@ public class AppPanel extends JPanel implements ActionListener, ItemListener
 
 	public boolean isModifiedValid(){
 		if(ComUtil.DEBUG_MODE){
+			return true;
+		}
+		if(getApkItem() == APK_ITEM_DATA){
 			return true;
 		}
 		int apksSize = getListSize();
