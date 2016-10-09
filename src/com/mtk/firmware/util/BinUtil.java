@@ -96,7 +96,7 @@ public class BinUtil {
 	}
 
 	public static void sedReplace(String filePath, String prop, String value){
-		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_SED,"-i",ComUtil.strWithQuotation(ComUtil.strConcat("/^",prop,"=/s/=.*/=",value,"/")),filePath);
+		String cmd = ComUtil.strConcatSpace(ComUtil.BIN_SED,"-i",ComUtil.strWithQuotation(ComUtil.strConcat("/^",prop,"\\s*=/s/=.*/=",value,"/")),filePath);
 		doCmd(cmd);
 	}
 

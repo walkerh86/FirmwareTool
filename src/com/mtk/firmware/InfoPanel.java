@@ -33,6 +33,7 @@ import com.mtk.firmware.util.Log;
 import com.mtk.firmware.util.PropManager;
 import com.mtk.firmware.util.PropUtil;
 import com.mtk.firmware.util.Timezones;
+import com.mtk.firmware.util.PropXmlParser;
 
 import javax.swing.JCheckBox;
 
@@ -47,6 +48,10 @@ public class InfoPanel extends JPanel{
 	
 	private static final int PROP_ITEM_COLS = 25;
 	private static final int PROP_ITEM_LABEL_COLS = 6;
+
+	public final static String	CFG_XML_PATH_TIMEZONE = System.getProperty("user.dir") + "\\etc\\timezones.xml";
+	public final static String	CFG_XML_PATH_LANGUAGE = System.getProperty("user.dir") + "\\etc\\language.xml";
+	public final static String	CFG_XML_PATH_PICSIZE = System.getProperty("user.dir") + "\\etc\\picturesize.xml";
 
 	private InfoPanel(){	
 		setLayout(null);
@@ -163,8 +168,8 @@ public class InfoPanel extends JPanel{
 	}
 
 	private void initProps(){		
-		mPropSets.add(new TimeZoneListPropItemView("persist.sys.timezone","默认时区", MainView.getBounds(0, 0, 1, PROP_ITEM_COLS)));
-		LanguageListPropItemView item = new LanguageListPropItemView("ro.product.locale.language","默认语言", MainView.getBounds(0, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS));
+		mPropSets.add(new ListPropItemView("persist.sys.timezone","默认时区", MainView.getBounds(0, 0, 1, PROP_ITEM_COLS),CFG_XML_PATH_TIMEZONE));
+		ListPropItemView item = new ListPropItemView("ro.product.locale.language","默认语言", MainView.getBounds(0, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS),CFG_XML_PATH_LANGUAGE);
 		item.setSubKey("ro.product.locale.region");
 		mPropSets.add(item);
 		
@@ -178,21 +183,32 @@ public class InfoPanel extends JPanel{
 		mPropSets.add(new TextPropItemView("ro.ty.ums.label","磁盘名称", MainView.getBounds(3, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new TextPropItemView("wlan.SSID","共享SSID", MainView.getBounds(4, 0, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new TextPropItemView("ro.ty.setting.brightness","默认亮度(%)", MainView.getBounds(4, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
-		mPropSets.add(new TextPropItemView("ro.ty.storage.fakein","假内部存储(Gb)", MainView.getBounds(5, 0, 1, PROP_ITEM_COLS/2)));
-		mPropSets.add(new TextPropItemView("ro.ty.storage.fakesd","假手机存储(Gb)", MainView.getBounds(5, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
-		mPropSets.add(new TextPropItemView("ro.ty.storage.fakeram","假正在运行(Gb)", MainView.getBounds(6, 0, 1, PROP_ITEM_COLS/2)));
-		mPropSets.add(new TextPropItemView("ro.ty.setting.fake.androidver","假Android版本", MainView.getBounds(6, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.sf.lcd_density","屏幕密度", MainView.getBounds(5, 0, 1, PROP_ITEM_COLS/2)));
+
+		mPropSets.add(new TextPropItemView("ro.ty.storage.fakein","假内部存储(Gb)", MainView.getBounds(6, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.storage.fakesd","假手机存储(Gb)", MainView.getBounds(6, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.storage.fakeram","假正在运行(Gb)", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.setting.fake.androidver","假Android版本", MainView.getBounds(7, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+
 		mPropSets.add(new TextPropItemView("ro.ty.browser.homepage","默认主页", MainView.getBounds(3, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.ime","默认输入法", MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.wallpaper","默认APK壁纸", MainView.getBounds(5, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
-		mPropSets.add(new TextPropItemView("ro.sf.lcd_density","屏幕密度", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new TextPropItemView("ro.ty.code.sw_logo","LOGO切换指令", MainView.getBounds(6, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 
 		mPropSets.add(new CheckPropItemView("ro.ty.launcher.bgtrans","主菜单背景透明", MainView.getBounds(7, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new CheckPropItemView("ro.ty.lang.bysim","语言随SIM卡变化", MainView.getBounds(7, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new CheckPropItemView("ro.ty.pwrmenu.reboot.enable","关机菜单显示重启", MainView.getBounds(8, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new CheckPropItemView("ro.ty.code.sw_logo.support","打开隐藏LOGO功能", MainView.getBounds(8, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
-				
+
+		mPropSets.add(new TextPropItemView("ro.ty.fake.cpu_model","假CPU型号", MainView.getBounds(8, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.fake.cpu_cores","假CPU核数", MainView.getBounds(8, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.fake.cpu_freq","假CPU频率", MainView.getBounds(9, 0, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.fake.resolution","假分辨率", MainView.getBounds(9, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new CheckPropItemView("ro.ty.fake.4g","假4G信号", MainView.getBounds(9, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2)));
+
+		mPropSets.add(new ListPropItemView("ro.ty.camera.picture_size.front","前摄像素", MainView.getBounds(10, 0, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_PICSIZE));
+		mPropSets.add(new ListPropItemView("ro.ty.camera.picture_size.back","后摄像素", MainView.getBounds(10, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_PICSIZE));
+		
 		initPropViews(this);
 	}
 	
@@ -394,9 +410,11 @@ public class InfoPanel extends JPanel{
 		private Vector<Item> mItems;
 		private JComboBox mJComboBox;
 		
-		public ListPropItemView(String key, String label, Rectangle rect) {
+		public ListPropItemView(String key, String label, Rectangle rect, String cfgXmlPath) {
 			super(key, label, rect);
-			mItem = new Item(null, null, null);
+			//mItem = new Item(null, null, null);
+			PropXmlParser xmlParser = new PropXmlParser(cfgXmlPath);
+			setItems(xmlParser.getItems());
 		}
 
 		public void setItems(Vector<Item> items){
@@ -458,24 +476,6 @@ public class InfoPanel extends JPanel{
 		public boolean isRealModified() {
 			//Log.i("PropItemView, key="+mKey+",old="+mValue+",new="+mItem.getId());
 			return mValue != null ? !mValue.equals(mItem.getId()) : false;
-		}
-	}
-
-	private class TimeZoneListPropItemView extends ListPropItemView{
-		private Timezones mTimezones;
-		public TimeZoneListPropItemView(String key, String label, Rectangle rect) {
-			super(key, label, rect);
-			mTimezones = new Timezones();
-			setItems(mTimezones.getTimezones());			
-		}
-	}
-
-	private class LanguageListPropItemView extends ListPropItemView{
-		private Language mLanguages;
-		public LanguageListPropItemView(String key, String label, Rectangle rect) {
-			super(key, label, rect);
-			mLanguages = new Language();
-			setItems(mLanguages.getLanguage());			
 		}
 	}
 }
