@@ -147,7 +147,7 @@ public class MainView extends JFrame implements ActionListener
 		setVisible(true);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
-		Log.i("UI init succeed!");
+		Log.i("UI init succeed! verStr="+verStr);
 	}
 
 	private boolean isRightPath(String path){	
@@ -308,6 +308,9 @@ public class MainView extends JFrame implements ActionListener
 	}
 
 	private boolean isSystemModified(){
+		if(ComUtil.SKIP_SYSTEM_PACK){
+			return false;
+		}
 		return infoPanel.isSystemModified() || mediaPanel.isSystemModified() || appPanel.isSystemModified();
 	}
 

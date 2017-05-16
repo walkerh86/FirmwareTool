@@ -412,7 +412,7 @@ public class InfoPanel extends JPanel{
 		
 		public ListPropItemView(String key, String label, Rectangle rect, String cfgXmlPath) {
 			super(key, label, rect);
-			//mItem = new Item(null, null, null);
+			mItem = new Item(null, null, null);
 			PropXmlParser xmlParser = new PropXmlParser(cfgXmlPath);
 			setItems(xmlParser.getItems());
 		}

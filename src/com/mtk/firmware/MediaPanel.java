@@ -175,7 +175,7 @@ public class MediaPanel extends JPanel{
 			Image pic = javax.imageio.ImageIO.read(new File(imgFile));
 			int width = pic.getWidth(null);
 			int height = pic.getHeight(null);
-			//System.out.print("width="+size.width+",height="+size.height);
+			System.out.print("width="+width+",height="+height+",port="+port);
 			if(width != -1 && height != -1){
 				if(!port && (width < height)){
 					degree = -90;
@@ -795,6 +795,7 @@ public class MediaPanel extends JPanel{
 		}
 
 		public void doModify(){
+			try{
 			Log.i("<<<<<<<<<<<<<<<<<<<<<<<<<<modify wallpaper begin");
 			String tmpDir = ComUtil.pathConcat(ComUtil.OUT_DIR,"wallpaper");
 			ComUtil.mkTempDir(tmpDir);
@@ -923,30 +924,34 @@ public class MediaPanel extends JPanel{
 			}
 
 			String[] wallpaperDrawables = new File(srcTmpDir).list();
-			for(String wallpaperName : wallpaperDrawables){
-				for(String drawableDir : launcherDrawables){
-					if(drawableDir == null){
-						break;
-					}
-					String wallpaperPath = ComUtil.pathConcat(tmpDrawablesDir,"res",drawableDir,wallpaperName);
-					if(new File(wallpaperPath).exists()){
-						String srcPath = ComUtil.pathConcat(srcTmpDir,wallpaperName);
-						String dstDir = ComUtil.pathConcat(launcherTmpDir,"res",drawableDir);
-						BinUtil.mkdir(dstDir);
-						BinUtil.copy(srcPath,dstDir);
-						if(swDp > 0){
+			if(wallpaperDrawables != null){
+				for(String wallpaperName : wallpaperDrawables){
+					for(String drawableDir : launcherDrawables){
+						if(drawableDir == null){
 							break;
+						}
+						String wallpaperPath = ComUtil.pathConcat(tmpDrawablesDir,"res",drawableDir,wallpaperName);
+						if(new File(wallpaperPath).exists()){
+							String srcPath = ComUtil.pathConcat(srcTmpDir,wallpaperName);
+							String dstDir = ComUtil.pathConcat(launcherTmpDir,"res",drawableDir);
+							BinUtil.mkdir(dstDir);
+							BinUtil.copy(srcPath,dstDir);
+							if(swDp > 0){
+								break;
+							}
 						}
 					}
 				}
 			}
 			StringBuilder sb = new StringBuilder();
 			String[] dstDrawableDirs = new File(ComUtil.pathConcat(launcherTmpDir,"res")).list();
-			for(String drawableDir : dstDrawableDirs){
-				sb.append(" ");
-				sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawableDir,"*")));
+			if(dstDrawableDirs != null){
+				for(String drawableDir : dstDrawableDirs){
+					sb.append(" ");
+					sb.append(ComUtil.strWithQuotation(ComUtil.pathConcat("res",drawableDir,"*")));
+				}
+				BinUtil.zipUpdateApk(launcherTmpDir, launcherPath, sb.toString());
 			}
-			BinUtil.zipUpdateApk(launcherTmpDir, launcherPath, sb.toString());
 			
 			if(isDefaultModified){
 				mDefaultItem.markState(STATE_SUCCESS);
@@ -955,12 +960,17 @@ public class MediaPanel extends JPanel{
 				mCandidateItem.markState(STATE_SUCCESS);
 			}
 			Log.i(">>>>>>>>>>>>>>>>>>>>>>>>>>modify wallpaper end");
+			}catch(Exception e){
+				Log.i("modify wallpaper e="+e);
+			}
 		}
 
 		private String getLauncherApkPath(){
 			String[] launcherPaths = new String[]{
 				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app","Launcher2.apk"),
-				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher2.apk")
+				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher2.apk"),
+				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app","Launcher3.apk"),
+				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher3.apk")
 			};
 			for(String path : launcherPaths){
 				File launcherApk = new File(path);

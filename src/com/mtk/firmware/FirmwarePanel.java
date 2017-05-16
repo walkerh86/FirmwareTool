@@ -89,7 +89,7 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		if (fPanel == null){		
 			fPanel = new FirmwarePanel();
 			if(ComUtil.DEBUG_MODE){
-				fPanel.setFirmwarePath("E:\\release\\YZ_云志\\K1001_160906\\software");
+				fPanel.setFirmwarePath("E:\\release\\1TWD_NEUTRAL\\10.1\\K0708_V1.0.3_170220_JD9366_512M");
 				fPanel.setAndroidSize();
 			}
 		}

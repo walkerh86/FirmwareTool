@@ -113,18 +113,30 @@ public class PropManager {
 
 	public static boolean isDispPort(){
 		PropManager propManager = PropManager.getInstance();
+		//new feature for app default land @{
+		boolean rotate90 = false;
+		String winOrientation = propManager.getValue("persist.sys.win.orientation");
+		if(winOrientation != null && (winOrientation.equals("90") || winOrientation.equals("270"))){
+			rotate90 = true;
+		}
+		//new feature for app default land @}
+		String animValue = propManager.getValue("ro.ty.anim.disp.port");
+		if(animValue != null){
+			return animValue.equals("1") && !rotate90;
+		}
 		String value = propManager.getValue("ro.ty.flag");
 		boolean port = (value == null) ? false : value.contains("_PORT");
 		String board = propManager.getValue("ro.product.board");
 		if("joya82_wet_kk".equals(board)){
 			port = false;
 		}
-		return port;
+		return port && !rotate90;
 	}
 
 	public static boolean isLogoDispPort(){
 		PropManager propManager = PropManager.getInstance();
 		String value = propManager.getValue("ro.ty.logo.disp.port");
+		System.out.print(",isLogoDispPort value="+value);
 		boolean port = (value == null) ? isDispPort() : value.equals("1");
 		return port;
 	}

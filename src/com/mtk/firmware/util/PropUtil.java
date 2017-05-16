@@ -62,6 +62,14 @@ public class PropUtil {
 			Map.Entry<String, String> prop= iter.next();
 			String convertValue = prop.getValue().replace("/","\\\\/");
 			BinUtil.sedReplace(mPropFilePath, prop.getKey(), convertValue);
+			String key = prop.getKey();
+			if("ro.ty.browser.homepage".equals(key)){
+				final String spConfFilePath = ComUtil.pathConcat(ComUtil.SYSTEM_ETC_DIR,"olackbrowser.properties");
+				File spConfFile = new File(spConfFilePath);
+				if(spConfFile.exists()){
+					BinUtil.sedReplace(spConfFilePath, "homepage", convertValue);
+				}
+			}
 		}
 	}
 

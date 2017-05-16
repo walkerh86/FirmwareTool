@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<props>
+    <item id="30"   value="30W像素" />
+    <item id="130"   value="130W像素" />
+    <item id="200"   value="200W像素" />
+    <item id="500"   value="500W像素" />
+    <item id="800"   value="800W像素" />
+    <item id="1200"   value="1200W像素" />
+    <item id="1300"   value="1300W像素" />
+    <item id="1600"   value="1600W像素" />
+ </props>
