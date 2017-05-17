@@ -105,6 +105,8 @@ public class InfoPanel extends JPanel{
 			}
 		}
 		mPropManager.save();
+
+		checkForGooglePlay();
 	}
 
 	public boolean isSystemModified(){
@@ -164,6 +166,20 @@ public class InfoPanel extends JPanel{
 			}
 			item.setValue(value);
 			//item.setModified(false);
+		}
+		checkForGooglePlay();
+	}
+
+	private boolean checkContainsInvalid(String value){
+		Pattern p = Pattern.compile("([^-\\w])");
+		Matcher m = p.matcher(value);
+		return m.find();
+	}
+
+	private void checkForGooglePlay(){
+		//check ro.product.model && ro.product.device
+		if(checkContainsInvalid(mPropManager.getValue("ro.product.model")) || checkContainsInvalid(mPropManager.getValue("ro.product.device"))){
+			JOptionPane.showMessageDialog(null, "机型名称和设备名称包含非字母数字以外的特殊字符或者空格很可能导致谷歌商店用不了，请务必验证谷歌商店！！！");
 		}
 	}
 
