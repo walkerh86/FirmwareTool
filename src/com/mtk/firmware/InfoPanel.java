@@ -53,6 +53,10 @@ public class InfoPanel extends JPanel{
 	public final static String	CFG_XML_PATH_LANGUAGE = System.getProperty("user.dir") + "\\etc\\language.xml";
 	public final static String	CFG_XML_PATH_PICSIZE = System.getProperty("user.dir") + "\\etc\\picturesize.xml";
 
+	public final static String	CFG_XML_PATH_FONTSIZE = System.getProperty("user.dir") + "\\etc\\fontsize.xml";
+	public final static String	CFG_XML_PATH_CAMPREVMODE = System.getProperty("user.dir") + "\\etc\\previewmode.xml";
+	public final static String	CFG_XML_PATH_SIGNALFAKEMODE = System.getProperty("user.dir") + "\\etc\\signal_fakemode.xml";
+	
 	private InfoPanel(){	
 		setLayout(null);
 		initProps();
@@ -102,6 +106,10 @@ public class InfoPanel extends JPanel{
 			}else{
 				mPropManager.setValue(key,item.getValue());
 				item.setModified(true);
+
+				if("ro.ty.ums.label".equals(key)){
+					mPropManager.setValue("ro.product.name",item.getValue());
+				}
 			}
 		}
 		mPropManager.save();
@@ -224,6 +232,14 @@ public class InfoPanel extends JPanel{
 
 		mPropSets.add(new ListPropItemView("ro.ty.camera.picture_size.front","前摄像素", MainView.getBounds(10, 0, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_PICSIZE));
 		mPropSets.add(new ListPropItemView("ro.ty.camera.picture_size.back","后摄像素", MainView.getBounds(10, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_PICSIZE));
+
+		mPropSets.add(new TextPropItemView("ro.ty.setting.vol_percent","默认音量(%)", MainView.getBounds(5, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+
+		mPropSets.add(new ListPropItemView("ro.ty.fontscale","字体大小", MainView.getBounds(10, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_FONTSIZE));
+		mPropSets.add(new ListPropItemView("ro.ty.camera.preview_mode","照相预览", MainView.getBounds(11, 0, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_CAMPREVMODE));
+		mPropSets.add(new ListPropItemView("ro.ty.signal.fake_mode","假信号模式", MainView.getBounds(11, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_SIGNALFAKEMODE));
+
+		mPropSets.add(new CheckPropItemView("ro.ty.feature.rm_vibrator","去掉马达功能", MainView.getBounds(9, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 		
 		initPropViews(this);
 	}
@@ -350,7 +366,8 @@ public class InfoPanel extends JPanel{
 		@Override
 		public void setValue(String value){
 			if(value == null || value.equals("null") 
-				|| (value.equals("0") && (mKey.equals("ro.ty.storage.fakein") || mKey.equals("ro.ty.storage.fakesd")  || mKey.equals("ro.ty.storage.fakeram")))){
+				|| (value.equals("0") && (mKey.equals("ro.ty.storage.fakein") || mKey.equals("ro.ty.storage.fakesd")  || mKey.equals("ro.ty.storage.fakeram")))
+				|| (value.equals("-1") && (mKey.equals("ro.ty.setting.vol_percent")))){
 				value = "";
 			}
 			super.setValue(value);

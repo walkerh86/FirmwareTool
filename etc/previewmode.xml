@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<props>
+    <item id="0"   value="4:3" />
+    <item id="2"   value="全屏" />
+    <item id="1"   value="4:3+全屏" />
+ </props>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<props>
+    <item id="1"   value="高清 小" />
+    <item id="1.08"   value="高清 普通" />
+    <item id="1.16"   value="高清 大" />
+    <item id="1.25"   value="高清 超大" />    
+    <item id="0.9"   value="普清 小" />
+    <item id="1"   value="普清 普通" />
+    <item id="1.1"   value="普清 大" />
+    <item id="1.15"   value="普清 超大" />
+    
+ </props>

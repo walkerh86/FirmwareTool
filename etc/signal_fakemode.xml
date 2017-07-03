@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<props>
+    <item id="0"   value="假4G" />
+    <item id="1"   value="假3G" />
+    <item id="2"   value="2G显3G,3G显4G"/>
+ </props>
