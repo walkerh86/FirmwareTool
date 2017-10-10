@@ -5,7 +5,7 @@ import java.io.File;
 
 public class ComUtil {
 	public static final boolean DEBUG_MODE = false; //no need to load system.img in this mode
-	public static final boolean FAST_MODE = true; //no need copy system.img
+	public static final boolean FAST_MODE = false; //no need copy system.img
 	public static final boolean ROM_AUTH_DISABLE = false; //no need copy system.img
 	public static final boolean SKIP_SYSTEM_PACK = false; //no need to load system.img in this mode
 	

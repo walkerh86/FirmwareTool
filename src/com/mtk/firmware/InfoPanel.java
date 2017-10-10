@@ -109,6 +109,7 @@ public class InfoPanel extends JPanel{
 
 				if("ro.ty.ums.label".equals(key)){
 					mPropManager.setValue("ro.product.name",item.getValue());
+					mPropManager.setValue("ro.product.manufacturer",item.getValue());
 				}
 			}
 		}
@@ -212,7 +213,7 @@ public class InfoPanel extends JPanel{
 		mPropSets.add(new TextPropItemView("ro.ty.storage.fakein","假内部存储(Gb)", MainView.getBounds(6, 0, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new TextPropItemView("ro.ty.storage.fakesd","假手机存储(Gb)", MainView.getBounds(6, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 		mPropSets.add(new TextPropItemView("ro.ty.storage.fakeram","假正在运行(Gb)", MainView.getBounds(7, 0, 1, PROP_ITEM_COLS/2)));
-		mPropSets.add(new TextPropItemView("ro.ty.setting.fake.androidver","假Android版本", MainView.getBounds(7, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.build.version.release","假Android版本", MainView.getBounds(7, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 
 		mPropSets.add(new TextPropItemView("ro.ty.browser.homepage","默认主页", MainView.getBounds(3, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
 		mPropSets.add(new TextPropItemView("ro.ty.default.ime","默认输入法", MainView.getBounds(4, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS)));
@@ -233,7 +234,7 @@ public class InfoPanel extends JPanel{
 		mPropSets.add(new ListPropItemView("ro.ty.camera.picture_size.front","前摄像素", MainView.getBounds(10, 0, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_PICSIZE));
 		mPropSets.add(new ListPropItemView("ro.ty.camera.picture_size.back","后摄像素", MainView.getBounds(10, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_PICSIZE));
 
-		mPropSets.add(new TextPropItemView("ro.ty.setting.vol_percent","默认音量(%)", MainView.getBounds(5, PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
+		mPropSets.add(new TextPropItemView("ro.ty.setting.vol_percent","默认音量(%)", MainView.getBounds(10, PROP_ITEM_COLS+1+PROP_ITEM_COLS/2+1, 1, PROP_ITEM_COLS/2)));
 
 		mPropSets.add(new ListPropItemView("ro.ty.fontscale","字体大小", MainView.getBounds(10, PROP_ITEM_COLS+1, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_FONTSIZE));
 		mPropSets.add(new ListPropItemView("ro.ty.camera.preview_mode","照相预览", MainView.getBounds(11, 0, 1, PROP_ITEM_COLS/2),CFG_XML_PATH_CAMPREVMODE));

@@ -18,6 +18,11 @@ public class PropUtil {
 	
 	public PropUtil(String filePath){
 		mPropFilePath = filePath;
+		File propFile = new File(mPropFilePath);
+		if(!propFile.exists()){
+			mPropFilePath = null;
+			return;
+		}
 		initProps();
 		/*
 		Iterator<Entry<String, String>> iter = mPropMaps.entrySet().iterator();
@@ -45,6 +50,7 @@ public class PropUtil {
 	}
 
 	public void setValue(String prop, String value){
+		if(mPropFilePath == null) return;
 		String oldValue = getValue(prop);
 		if(!oldValue.equals(value)){
 			mPropMapsModified.put(prop,value);
@@ -57,6 +63,8 @@ public class PropUtil {
 	}
 
 	public void save(){
+		if(mPropFilePath == null) return;
+		
 		Iterator<Entry<String, String>> iter = mPropMapsModified.entrySet().iterator();
 		while(iter.hasNext()){
 			Map.Entry<String, String> prop= iter.next();
@@ -99,6 +107,7 @@ public class PropUtil {
 	}
 
 	public void addProp(String prop, String value){
+		if(mPropFilePath == null) return;
 		mPropMaps.put(prop,value);
 	}
 }

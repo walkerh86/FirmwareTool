@@ -60,6 +60,8 @@ public class FirmwarePanel extends JPanel implements ActionListener
 
 	private FirmwarePanel()
 	{
+		mSysImgSizeMb = 0;
+		
 		progressFrame = new JFrame();
 		progressFrame.setTitle("正在回读升级包");
 		progressFrame.setSize(600, 70);
@@ -421,7 +423,12 @@ public class FirmwarePanel extends JPanel implements ActionListener
 		BinUtil.simgToImg(mSysImgPath, SYSTEM_IMGEXT);
 		BinUtil.mkdir(ComUtil.SYSTEM_DIR);
 		BinUtil.ext4(SYSTEM_IMGEXT,ComUtil.SYSTEM_DIR);
-		mSysImgSizeMb = (int)FileUtil.getFileSizes(SYSTEM_IMGEXT) / 1024 / 1024;
+		if(mSysImgSizeMb == 0){
+			mSysImgSizeMb = (int)FileUtil.getFileSizes(SYSTEM_IMGEXT) / 1024 / 1024;
+		}
+		int realsize = FileUtil.FormatFileSize(FileUtil.getFileSizes(mSysImgPath));
+		allowSize = mSysImgSizeMb - realsize;
+		Log.i("Allow add apk size:" + allowSize + "M");
 		BinUtil.rm(SYSTEM_IMGEXT);
 	}
 

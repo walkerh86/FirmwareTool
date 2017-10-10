@@ -784,7 +784,7 @@ public class MediaPanel extends JPanel{
 		private DecimalFormat mDF = new DecimalFormat("00");
 		private static final int DEFAULT_WALLPAPER_IDX = 1;
 		private static final int CANDIDATE_WALLPAPER_START_IDX = 2;
-		private final String[] WALLPAPER_DRAWABLES = new String[]{"drawable-nodpi","drawable-sw600dp-nodpi"};
+		private final String[] WALLPAPER_DRAWABLES = new String[]{"drawable-nodpi","drawable-sw600dp-nodpi","drawable-large-nodpi"};
 		private static final String SMALL_SIZE = "x189";
 		private static final int MAX_WALLPAPERS = 20;
 		
@@ -970,7 +970,9 @@ public class MediaPanel extends JPanel{
 				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app","Launcher2.apk"),
 				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher2.apk"),
 				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app","Launcher3.apk"),
-				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher3.apk")
+				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher3.apk"),
+				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"app","Launcher2Q8.apk"),
+				ComUtil.pathConcat(ComUtil.SYSTEM_DIR,"priv-app","Launcher2Q8.apk")
 			};
 			for(String path : launcherPaths){
 				File launcherApk = new File(path);
